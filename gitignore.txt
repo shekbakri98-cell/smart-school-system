@@ -1,0 +1,32 @@
+# Dependencies - Kuusaa koodii ijaarsaa
+node_modules/
+.pnpm-store/
+jspm_packages/
+
+# Production Build - Faayilota ijaarsaa dhumataa
+frontend/dist/
+frontend/build/
+
+# Environment Variables - Iccitiiwwan database fi kaffaltii
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs - Faayilota dogoggorri itti barreeffamu
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files - Faayilota system kompiutaraa
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
