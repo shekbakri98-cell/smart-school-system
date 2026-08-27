@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CreditCard, Landmark, Users, GraduationCap, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 // URL backend Render live ta'e kallattiin kaa'uu (Dachaa '/api/v1' dhabamsiisuuf)
-const API_BASE_URL = 'https://onrender.com';
+const API_BASE_URL = 'https://smart-school-system-gdk5.onrender.com/api/v1';
 export default function App() {
   const [activeChild, setActiveChild] = useState('Tariku');
   const [financials, setFinancials] = useState({ totalInvoice: 0, amountPaid: 0, balance: 0 });
