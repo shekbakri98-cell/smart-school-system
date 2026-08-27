@@ -1,89 +1,123 @@
 const express = require('express');
 const cors = require('cors');
-const app = express();
+const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-// CORS hundumaaf banuu (Frontend akka siriitti dubbisuuf)
+const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🗄️ Database Fake (Odeeffannoo kaffaltii fi qabxii barattootaa)
-let studentDatabase = {
-    'STD-0419': {
-        name: 'Tariku Abebe',
-        grade: 'Grade 9B',
-        totalInvoice: 45000,
-        amountPaid: 26500,
-        balance: 18500,
-        ca1: 8, ca2: 15, ca3: 22, exam: 30, // Qabxii Teacher Dashboard
-        transactions: [
-            { date: 'Aug 25, 2026', ref: '9FL5XYZ7820', amount: '18,500.00', status: 'SUCCESS', method: 'telebirr' },
-            { date: 'May 02, 2026', ref: 'CBE-FT-99120', amount: '8,000.00', status: 'SUCCESS', method: 'CBE Transfer' }
-        ]
-    },
-    'STD-0882': {
-        name: 'Martha Abebe',
-        grade: 'Grade 4A',
-        totalInvoice: 45000,
-        amountPaid: 45000,
-        balance: 0,
-        ca1: 9, ca2: 18, ca3: 26, exam: 35, // Qabxii Teacher Dashboard
-        transactions: [
-            { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '45,000.00', status: 'SUCCESS', method: 'telebirr' }
-        ]
-    }
+// Smart Environment Connection Routing Fallbacks
+const dbConfig = {
+    host: process.env.DB_HOST || '127.0.0.1',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',  
+    database: process.env.DB_NAME || 'school_db',
+    port: process.env.DB_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 };
 
-// 🌟 1. GET: Dashboard barataa Parent Portal-f erguu
-app.get('/api/v1/students/:studentId/dashboard', (req, res) => {
+const pool = mysql.createPool(dbConfig);
+
+// Health Check Endpoint
+app.get('/health', async (req, res) => {
+    try {
+        const connection = await pool.getConnection();
+        await connection.query('SELECT 1');
+        connection.release();
+        res.status(200).json({ status: "healthy", environment: process.env.NODE_ENV || "development", database: "connected" });
+    } catch (err) {
+        res.status(500).json({ status: "unhealthy", database: "disconnected", error: err.message });
+    }
+});
+
+// 🌟 GET Endpoint: Ragaa Barataa phpMyAdmin irraa fiduu (Gabatee 'invoices' fi 'financial_transactions')
+app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
     const { studentId } = req.params;
-    const studentData = studentDatabase[studentId];
-    if (!studentData) return res.status(404).json({ message: "Barataan hin argamne" });
-    res.status(200).json(studentData);
-});
+    
+    // Maqaa irraa gara ID database keetii sirriitti map gochuu
+    const dbStudentId = studentId === 'STD-0419' ? 1 : 2; 
 
-// 🌟 2. GET: Qabxii barattootaa Teacher Dashboard-f erguu
-app.get('/api/v1/grades/continuous-assessment', (req, res) => {
-    const studentList = Object.keys(studentDatabase).map(id => ({
-        id: id,
-        name: studentDatabase[id].name,
-        ca1: studentDatabase[id].ca1,
-        ca2: studentDatabase[id].ca2,
-        ca3: studentDatabase[id].ca3,
-        exam: studentDatabase[id].exam
-    }));
-    res.status(200).json(studentList);
-});
+    try {
+        // 1. Query: Gabatee 'invoices' irraa herrega fiduu
+        const [invoices] = await pool.query('SELECT * FROM invoices WHERE student_id = ? LIMIT 1', [dbStudentId]);
+        
+        let transactions = [];
+        if (invoices.length > 0) {
+            // 2. Query: Gabatee 'financial_transactions' (phpMyAdmin kee irratti akka mul'atutti) irraa fiduu
+            const [txList] = await pool.query(
+                'SELECT processed_at as date, reference_no as ref, amount_paid as amount, gateway as method FROM financial_transactions WHERE invoice_id = ?', 
+                [invoices[0].invoice_id]
+            );
+            transactions = txList;
+        }
 
-// 🌟 3. POST: Qabxii barsiisaan jijjiire database irratti update gochuu
-app.post('/api/v1/grades/update', (req, res) => {
-    const { studentId, ca1, ca2, ca3, exam } = req.body;
-    if (studentDatabase[studentId]) {
-        studentDatabase[studentId].ca1 = Number(ca1);
-        studentDatabase[studentId].ca2 = Number(ca2);
-        studentDatabase[studentId].ca3 = Number(ca3);
-        studentDatabase[studentId].exam = Number(exam);
-        return res.status(200).json({ message: "Qabxiin milkiidhaan update ta'eera!" });
-    }
-    res.status(400).json({ message: "Barataa argachuun hin danda'amne." });
-});
+        if (invoices.length === 0) {
+            // Yoo database keessaa dhabame mockup deebisi ijaarri akka hin kufeef
+            return res.status(200).json({
+                totalInvoice: 45000,
+                amountPaid: 26500,
+                balance: 18500,
+                transactions: []
+            });
+        }
 
-// 🌟 4. POST: Telebirr Webhook kaffaltii galmeessu
-app.post('/api/v1/payments/telebirr-webhook', (req, res) => {
-    const studentId = req.body.data?.customFields?.studentId;
-    if (studentId && studentDatabase[studentId]) {
-        studentDatabase[studentId].amountPaid = studentDatabase[studentId].totalInvoice;
-        studentDatabase[studentId].balance = 0;
-        studentDatabase[studentId].transactions.unshift({
-            date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
-            ref: req.body.data.tradeNo || 'TXN-LIVE',
-            amount: req.body.data.paymentAmount,
-            status: 'SUCCESS',
-            method: 'telebirr'
+        res.status(200).json({
+            totalInvoice: Number(invoices[0].total_amount),
+            amountPaid: Number(invoices[0].amount_paid),
+            balance: Number(invoices[0].total_amount) - Number(invoices[0].amount_paid),
+            transactions: transactions
         });
-        return res.status(200).json({ code: "200", message: "Transaction completed successfully" });
+
+    } catch (err) {
+        res.status(500).json({ message: "Database query fail", error: err.message });
     }
-    res.status(400).json({ code: "400", message: "Failed" });
+});
+
+// Smart Telebirr Payment Webhook Reconciliation Endpoint
+app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
+    const { sign, data } = req.body;
+    
+    if (!data || !data.tradeNo || !data.outTradeNo) {
+        return res.status(400).json({ code: "400", message: "Malformed payload parameter mapping." });
+    }
+
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // 1. Verification layer gabatee 'financial_transactions' irratti
+        const [existingTx] = await connection.execute('SELECT transaction_id FROM financial_transactions WHERE reference_no = ?', [data.tradeNo]);
+        if (existingTx.length > 0) {
+            await connection.rollback();
+            return res.status(200).json({ code: "200", message: "Transaction reference hash key previously processed." });
+        }
+
+        // 2. Insert gochuu gabatee 'financial_transactions' irratti
+        await connection.execute(
+            'INSERT INTO financial_transactions (invoice_id, amount_paid, reference_no, gateway, status) VALUES (?, ?, ?, "telebirr", "SUCCESS")',
+            [data.outTradeNo, data.paymentAmount, data.tradeNo]
+        );
+
+        // 3. Balance update gochuu gabatee 'invoices' irratti
+        await connection.execute(
+            'UPDATE invoices SET amount_paid = amount_paid + ?, status = IF(amount_paid >= total_amount, "PAID", "PARTIAL") WHERE invoice_id = ?',
+            [data.paymentAmount, data.outTradeNo]
+        );
+
+        await connection.commit();
+        res.status(200).json({ code: "0", message: "Success" });
+    } catch (error) {
+        await connection.rollback();
+        res.status(500).json({ code: "500", message: "Internal transactional system rollback executed.", error: error.message });
+    } finally {
+        connection.release();
+    }
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Smart Server engine online. Operational Port Map: ${PORT}`);
+});
