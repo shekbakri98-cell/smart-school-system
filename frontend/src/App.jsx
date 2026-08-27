@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Landmark, Users, GraduationCap, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 
+// URL backend Render live ta'e kallattiin kaa'uu (Dachaa '/api/v1' dhabamsiisuuf)
 const API_BASE_URL = 'https://onrender.com';
-
 export default function App() {
   const [activeChild, setActiveChild] = useState('Tariku');
   const [financials, setFinancials] = useState({ totalInvoice: 0, amountPaid: 0, balance: 0 });
@@ -10,7 +10,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
   const fetchDashboardData = async (studentId) => {
     setFetching(true);
     setErrorMessage('');
@@ -42,7 +41,6 @@ export default function App() {
   useEffect(() => {
     fetchDashboardData(activeChild);
   }, [activeChild]);
-
   const handleTelebirrPayment = async () => {
     setLoading(true);
     try {
@@ -74,9 +72,9 @@ export default function App() {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased">
+      {/* Header Layout */}
       <header className="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -90,6 +88,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* Main Framework Container */}
       <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
         {errorMessage && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded text-red-800 flex items-start gap-3 shadow-sm">
@@ -124,7 +123,7 @@ export default function App() {
             <RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
         </div>
-        
+        {/* Tuition Ledger Card */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
           <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex justify-between items-center">
             <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
@@ -173,6 +172,7 @@ export default function App() {
           )}
         </section>
 
+        {/* Receipt & Payment Log History Table */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
             <h3 className="text-sm font-bold text-slate-900 tracking-tight">Receipt & Payment Log History</h3>
@@ -188,26 +188,31 @@ export default function App() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                
-{transactions.length === 0 ? (
-  <tr>
-    <td colSpan="4" className="p-8 text-center text-slate-400 italic">
-      No historical records discovered for this student record.
-    </td>
-  </tr>
-) : (
-  transactions.map((tx, idx) => (
-    <tr key={idx} className="hover:bg-slate-50/50 transition">
-      <td className="p-4 font-medium text-slate-900">{tx.date}</td>
-      <td className="p-4 font-mono text-xs text-slate-500">{tx.ref}</td>
-      <td className="p-4">
-        <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-semibold text-slate-600 uppercase">
-          {tx.method}
-        </span>
-      </td>
-      <td className="p-4 text-right font-black text-slate-900">
-        {tx.amount} <span className="text-xs font-normal text-slate-400">ETB</span>
-      </td>
-    </tr>
-  ))
-)}
+                {transactions.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="p-8 text-center text-slate-400 italic">No historical records discovered for this student record.</td>
+                  </tr>
+                ) : (
+                  transactions.map((tx, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition">
+                      <td className="p-4 font-medium text-slate-900">{tx.date}</td>
+                      <td className="p-4 font-mono text-xs text-slate-500">{tx.ref}</td>
+                      <td className="p-4">
+                        <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-semibold text-slate-600 uppercase">
+                          {tx.method}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right font-black text-slate-900">
+                        {tx.amount} <span className="text-xs font-normal text-slate-400">ETB</span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
