@@ -9,7 +9,7 @@ app.use(express.json());
 
 // Smart Environment Connection Routing Fallbacks
 const dbConfig = {
-    host: process.env.DB_HOST || '127.0.0.1',
+    host: process.env.DB_HOST || '127.0.0.1', 
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',  
     database: process.env.DB_NAME || 'school_db',
@@ -27,17 +27,17 @@ app.get('/health', async (req, res) => {
         const connection = await pool.getConnection();
         await connection.query('SELECT 1');
         connection.release();
-        res.status(200).json({ status: "healthy", environment: process.env.NODE_ENV || "development", database: "connected" });
+        res.status(200).json({ status: "healthy", database: "connected" });
     } catch (err) {
-        res.status(500).json({ status: "unhealthy", database: "disconnected", error: err.message });
+        res.status(500).json({ status: "unhealthy", error: err.message });
     }
 });
 
-// 🌟 GET Endpoint: Ragaa Barataa phpMyAdmin irraa fiduu (Gabatee 'invoices' fi 'financial_transactions')
+// 🌟 ROUTE SIRRII: Ragaa Barataa phpMyAdmin irraa fiduu (GET Endpoint)
 app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
     const { studentId } = req.params;
     
-    // Maqaa irraa gara ID database keetii sirriitti map gochuu
+    // Maqaa irraa gara ID database keetii sirriitti map gochuu (Tariku = 1)
     const dbStudentId = studentId === 'STD-0419' ? 1 : 2; 
 
     try {
@@ -46,7 +46,7 @@ app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
         
         let transactions = [];
         if (invoices.length > 0) {
-            // 2. Query: Gabatee 'financial_transactions' (phpMyAdmin kee irratti akka mul'atutti) irraa fiduu
+            // 2. Query: Gabatee 'financial_transactions' irraa seenaa kaffaltii fiduu
             const [txList] = await pool.query(
                 'SELECT processed_at as date, reference_no as ref, amount_paid as amount, gateway as method FROM financial_transactions WHERE invoice_id = ?', 
                 [invoices[0].invoice_id]
@@ -88,27 +88,24 @@ app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
     await connection.beginTransaction();
 
     try {
-        // 1. Verification layer gabatee 'financial_transactions' irratti
         const [existingTx] = await connection.execute('SELECT transaction_id FROM financial_transactions WHERE reference_no = ?', [data.tradeNo]);
         if (existingTx.length > 0) {
             await connection.rollback();
             return res.status(200).json({ code: "200", message: "Transaction reference hash key previously processed." });
         }
 
-        // 2. Insert gochuu gabatee 'financial_transactions' irratti
         await connection.execute(
             'INSERT INTO financial_transactions (invoice_id, amount_paid, reference_no, gateway, status) VALUES (?, ?, ?, "telebirr", "SUCCESS")',
             [data.outTradeNo, data.paymentAmount, data.tradeNo]
         );
 
-        // 3. Balance update gochuu gabatee 'invoices' irratti
         await connection.execute(
             'UPDATE invoices SET amount_paid = amount_paid + ?, status = IF(amount_paid >= total_amount, "PAID", "PARTIAL") WHERE invoice_id = ?',
             [data.paymentAmount, data.outTradeNo]
         );
 
         await connection.commit();
-        res.status(200).json({ code: "0", message: "Success" });
+        res.status(200).json({ code: "200", message: "Transaction completed successfully" });
     } catch (error) {
         await connection.rollback();
         res.status(500).json({ code: "500", message: "Internal transactional system rollback executed.", error: error.message });
@@ -118,6 +115,4 @@ app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Smart Server engine online. Operational Port Map: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
