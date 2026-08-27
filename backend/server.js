@@ -4,7 +4,14 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// 🌟 CORS CONFIGURATION: Eeyyama guutummaatti banuuf (Failed to fetch dhabamsiisuuf)
+app.use(cors({
+    origin: '*', // Domain hundarraa request akka simatu eeyyamuu
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Smart Environment Connection Routing Fallbacks
@@ -33,20 +40,16 @@ app.get('/health', async (req, res) => {
     }
 });
 
-// 🌟 ROUTE SIRRII: Ragaa Barataa phpMyAdmin irraa fiduu (GET Endpoint)
+// GET Endpoint: Ragaa Barataa phpMyAdmin irraa fiduu
 app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
     const { studentId } = req.params;
-    
-    // Maqaa irraa gara ID database keetii sirriitti map gochuu (Tariku = 1)
     const dbStudentId = studentId === 'STD-0419' ? 1 : 2; 
 
     try {
-        // 1. Query: Gabatee 'invoices' irraa herrega fiduu
         const [invoices] = await pool.query('SELECT * FROM invoices WHERE student_id = ? LIMIT 1', [dbStudentId]);
         
         let transactions = [];
         if (invoices.length > 0) {
-            // 2. Query: Gabatee 'financial_transactions' irraa seenaa kaffaltii fiduu
             const [txList] = await pool.query(
                 'SELECT processed_at as date, reference_no as ref, amount_paid as amount, gateway as method FROM financial_transactions WHERE invoice_id = ?', 
                 [invoices[0].invoice_id]
