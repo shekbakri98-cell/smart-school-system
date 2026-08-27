@@ -5,21 +5,21 @@ require('dotenv').config();
 
 const app = express();
 
-// 🌟 CORS CONFIGURATION: Eeyyama guutummaatti banuuf (Failed to fetch dhabamsiisuuf)
+// CORS hundumaaf banuu (Failed to fetch dhabamsiisuuf)
 app.use(cors({
-    origin: '*', // Domain hundarraa request akka simatu eeyyamuu
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
 
-// Smart Environment Connection Routing Fallbacks
+// 🌟 ALWAYS DATA CLOUD CONFIGURATION LINKAGES
 const dbConfig = {
-    host: process.env.DB_HOST || '127.0.0.1', 
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',  
-    database: process.env.DB_NAME || 'school_db',
+    host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', // URL Alwaysdata host kee
+    user: process.env.DB_USER || 'anewar_smart',                // Username database kee
+    password: process.env.DB_PASSWORD || '',                     // Password Alwaysdata kee
+    database: process.env.DB_NAME || 'anewar_smart-school-system', // Maqaa database kee isa sirrii
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
     connectionLimit: 10,
@@ -40,7 +40,7 @@ app.get('/health', async (req, res) => {
     }
 });
 
-// GET Endpoint: Ragaa Barataa phpMyAdmin irraa fiduu
+// GET Endpoint: Ragaa Barataa Alwaysdata irraa fiduu (Gabatee invoices)
 app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
     const { studentId } = req.params;
     const dbStudentId = studentId === 'STD-0419' ? 1 : 2; 
@@ -52,13 +52,12 @@ app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
         if (invoices.length > 0) {
             const [txList] = await pool.query(
                 'SELECT processed_at as date, reference_no as ref, amount_paid as amount, gateway as method FROM financial_transactions WHERE invoice_id = ?', 
-                [invoices[0].invoice_id]
+                [invoices.invoice_id]
             );
             transactions = txList;
         }
 
         if (invoices.length === 0) {
-            // Yoo database keessaa dhabame mockup deebisi ijaarri akka hin kufeef
             return res.status(200).json({
                 totalInvoice: 45000,
                 amountPaid: 26500,
@@ -68,9 +67,9 @@ app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
         }
 
         res.status(200).json({
-            totalInvoice: Number(invoices[0].total_amount),
-            amountPaid: Number(invoices[0].amount_paid),
-            balance: Number(invoices[0].total_amount) - Number(invoices[0].amount_paid),
+            totalInvoice: Number(invoices.total_amount),
+            amountPaid: Number(invoices.amount_paid),
+            balance: Number(invoices.total_amount) - Number(invoices.amount_paid),
             transactions: transactions
         });
 
