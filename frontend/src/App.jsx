@@ -152,7 +152,7 @@ export default function App() {
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0"><Landmark className="h-5 w-5" /></div>
                     <div>
                       <span className="block font-black text-slate-900 text-sm uppercase tracking-wide">🏦 Direct Bank Transfer</span>
-                      <span className="block text-xs font-mono bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded inline-block mt-1">CBE Account Reference: 1000123456789</span>
+                      <span className="block text-xs font-mono bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded inline-block mt-1">CBE Account Reference: 1000396763827</span>
                       <span className="block text-xs text-slate-400 mt-2 leading-relaxed">*Requires manual cashier ledger account evaluation if bank tracker hash is unmatched.</span>
                     </div>
                   </div>
