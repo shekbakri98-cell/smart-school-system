@@ -64,7 +64,7 @@ export default function App() {
   const handleDownloadPDF = () => {
     alert(`Generating official statement transcript download file blueprint for ${activeChild} Abee...`);
     const link = document.createElement('a');
-    link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HILLSIDE ACADEMY TUITION INVOICE STATEMENT\nChild Profile: ${activeChild} Abebe\nTotal Invoice: ${financials.totalInvoice} ETB\nAmount Paid: ${financials.amountPaid} ETB\nRemaining Balance: ${financials.balance} ETB`);
+    link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HILLSIDE ACADEMY TUITION INVOICE STATEMENT\nChild Profile: ${activeChild} Abee\nTotal Invoice: ${financials.totalInvoice} ETB\nAmount Paid: ${financials.amountPaid} ETB\nRemaining Balance: ${financials.balance} ETB`);
     link.download = `Hillside_Statement_${activeChild}.txt`;
     link.click();
   };
@@ -186,7 +186,7 @@ export default function App() {
 
       <footer className="bg-slate-800 text-slate-400 text-xs py-4 px-6 border-t border-slate-700">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-500" /> Support Helpline: <span className="text-slate-300 font-bold">+251-11-XXXXXXX</span></div>
+          <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-500" /> Support Helpline: <span className="text-slate-300 font-bold">+251-22-015661</span></div>
           <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" /> Emergency Email Support: <span className="text-slate-300 font-bold">shekbakri98@gmail.com</span></div>
         </div>
       </footer>
