@@ -14,18 +14,17 @@ app.use(cors({
 
 app.use(express.json());
 
-// 🌟 ALWAYS DATA CLOUD DATABASE PROPERTIES
+// 🌟 ALWAYS DATA CLOUD DATABASE PROPERTIES - CREDENTIALS HAARAA
 const dbConfig = {
     host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', 
-    user: process.env.DB_USER || 'anewar_smart',                
-    password: process.env.DB_PASSWORD || '015661Emran@',                     
+    user: process.env.DB_USER || 'anewar_admin', // 👈 anewar_smart dhiisii anewar_admin godhi
+    password: process.env.DB_PASSWORD || '015661Emran@', // 👈 Password haaraa kana kaayi
     database: process.env.DB_NAME || 'anewar_smart-school-system', 
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 };
-
 const pool = mysql.createPool(dbConfig);
 
 // Health Check Endpoint
