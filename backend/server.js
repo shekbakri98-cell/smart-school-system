@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS hundumaaf banuu (Failed to fetch dhabamsiisuuf)
+// 🌟 CORS CONFIGURATION: 'Failed to fetch' guutummaatti dhabamsiisuuf
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -14,12 +14,12 @@ app.use(cors({
 
 app.use(express.json());
 
-// 🌟 ALWAYS DATA CLOUD CONFIGURATION LINKAGES
+// 🌟 ALWAYS DATA CLOUD DATABASE PROPERTIES
 const dbConfig = {
-    host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', // URL Alwaysdata host kee
-    user: process.env.DB_USER || 'anewar_smart',                // Username database kee
-    password: process.env.DB_PASSWORD || '',                     // Password Alwaysdata kee
-    database: process.env.DB_NAME || 'anewar_smart-school-system', // Maqaa database kee isa sirrii
+    host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', 
+    user: process.env.DB_USER || 'anewar_smart',                
+    password: process.env.DB_PASSWORD || '015661Emran@',                     
+    database: process.env.DB_NAME || 'anewar_smart-school-system', 
     port: process.env.DB_PORT || 3306,
     waitForConnections: true,
     connectionLimit: 10,
@@ -40,24 +40,27 @@ app.get('/health', async (req, res) => {
     }
 });
 
-// GET Endpoint: Ragaa Barataa Alwaysdata irraa fiduu (Gabatee invoices)
+// GET Endpoint: Ragaa Barataa Alwaysdata phpMyAdmin irraa fiduu
 app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
     const { studentId } = req.params;
     const dbStudentId = studentId === 'STD-0419' ? 1 : 2; 
 
     try {
+        // Query 1: Gabatee 'invoices' irraa herrega fiduu
         const [invoices] = await pool.query('SELECT * FROM invoices WHERE student_id = ? LIMIT 1', [dbStudentId]);
         
         let transactions = [];
         if (invoices.length > 0) {
+            // Query 2: Gabatee 'financial_transactions' irraa seenaa kaffaltii fiduu
             const [txList] = await pool.query(
                 'SELECT processed_at as date, reference_no as ref, amount_paid as amount, gateway as method FROM financial_transactions WHERE invoice_id = ?', 
-                [invoices.invoice_id]
+                [invoices[0].invoice_id]
             );
             transactions = txList;
         }
 
         if (invoices.length === 0) {
+            // Database keessaa yoo dhabame ijaarri akka hin ijaaramneef fallback mockup deebisi
             return res.status(200).json({
                 totalInvoice: 45000,
                 amountPaid: 26500,
@@ -67,9 +70,9 @@ app.get('/api/v1/students/:studentId/dashboard', async (req, res) => {
         }
 
         res.status(200).json({
-            totalInvoice: Number(invoices.total_amount),
-            amountPaid: Number(invoices.amount_paid),
-            balance: Number(invoices.total_amount) - Number(invoices.amount_paid),
+            totalInvoice: Number(invoices[0].total_amount),
+            amountPaid: Number(invoices[0].amount_paid),
+            balance: Number(invoices[0].total_amount) - Number(invoices[0].amount_paid),
             transactions: transactions
         });
 
