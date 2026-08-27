@@ -8,7 +8,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Fees & Payments');
   const [activeChild, setActiveChild] = useState('Tariku');
-  const [financials, setFinancials] = useState({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
+  const [financials, setFinancials] = useState({ totalInvoice: , amountPaid: , balance:  });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -19,17 +19,17 @@ export default function App() {
     setErrorMessage('');
     try {
       await new Promise(resolve => setTimeout(resolve, 600));
-      if (studentId === 'Tariku') {
-        setFinancials({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
+      if (studentId === '') {
+        setFinancials({ totalInvoice: , amountPaid: , balance:  });
         setTransactions([
-          { date: 'Aug 25, 2026', ref: '9FL5XYZ7820', amount: '18,500.00', status: 'SUCCESS', method: 'telebirr' },
-          { date: 'May 02, 2026', ref: 'CBE-FT-99120', amount: '8,000.00', status: 'SUCCESS', method: 'CBE Transfer' },
-          { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '20,000.00', status: 'SUCCESS', method: 'telebirr' }
+          { date: ',', ref: '', amount: '', status: '', method: '' },
+          { date: ', ', ref: '', amount: '', status: '', method: '' },
+          { date: ', ', ref: '', amount: '', status: '', method: '' }
         ]);
       } else {
-        setFinancials({ totalInvoice: 45000, amountPaid: 45000, balance: 0 });
+        setFinancials({ totalInvoice:, amountPaid: , balance:  });
         setTransactions([
-          { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '45,000.00', status: 'SUCCESS', method: 'telebirr' }
+          { date: ',', ref: '', amount: '', status: '', method: 'telebirr' }
         ]);
       }
     } catch (err) {
@@ -62,7 +62,7 @@ export default function App() {
   };
 
   const handleDownloadPDF = () => {
-    alert(`Generating official statement transcript download file blueprint for ${activeChild} Abebe...`);
+    alert(`Generating official statement transcript download file blueprint for ${activeChild} Abee...`);
     const link = document.createElement('a');
     link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HILLSIDE ACADEMY TUITION INVOICE STATEMENT\nChild Profile: ${activeChild} Abebe\nTotal Invoice: ${financials.totalInvoice} ETB\nAmount Paid: ${financials.amountPaid} ETB\nRemaining Balance: ${financials.balance} ETB`);
     link.download = `Hillside_Statement_${activeChild}.txt`;
@@ -76,7 +76,7 @@ export default function App() {
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-emerald-400" />
-              <h1 className="font-extrabold text-lg tracking-wider">🏢 HILLSIDE ACADEMY PORTAL</h1>
+              <h1 className="font-extrabold text-lg tracking-wider">🏢 SCHOOL ACADEMY PORTAL</h1>
             </div>
             <div className="text-sm font-medium bg-indigo-950 px-4 py-1.5 rounded-full border border-indigo-800 flex items-center gap-2">
               <Users className="h-4 w-4 text-slate-400" /> Parent View: Ayane M.
@@ -114,8 +114,8 @@ export default function App() {
                 <div>
                   <span className="text-xs uppercase font-bold tracking-widest text-slate-400 block mb-1">Child Profile Selector</span>
                   <div className="flex gap-2">
-                    <button onClick={() => setActiveChild('Tariku')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Tariku' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Tariku Abebe (Grade 9B)</button>
-                    <button onClick={() => setActiveChild('Martha')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Martha' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Martha Abebe (Grade 4A)</button>
+                    <button onClick={() => setActiveChild('Abbee')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Abbee' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Abbee Anee (Grade 9B)</button>
+                    <button onClick={() => setActiveChild('Nejma')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Nejma' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Nejma Anee (Grade 4A)</button>
                   </div>
                 </div>
                 <button onClick={() => fetchDashboardData(activeChild)} className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition"><RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin' : ''}`} /></button>
@@ -187,7 +187,7 @@ export default function App() {
       <footer className="bg-slate-800 text-slate-400 text-xs py-4 px-6 border-t border-slate-700">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-500" /> Support Helpline: <span className="text-slate-300 font-bold">+251-11-XXXXXXX</span></div>
-          <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" /> Emergency Email Support: <span className="text-slate-300 font-bold">support@school.edu.et</span></div>
+          <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" /> Emergency Email Support: <span className="text-slate-300 font-bold">shekbakri98@gmail.com</span></div>
         </div>
       </footer>
     </div>
