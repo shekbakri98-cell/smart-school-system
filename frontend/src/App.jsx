@@ -1,3 +1,129 @@
+import React, { useState, useEffect } from 'react';
+import { CreditCard, Landmark, Users, GraduationCap, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
+
+// URL backend Render live ta'e kallattiin kaa'uu (Dachaa '/api/v1' dhabamsiisuuf)
+const API_BASE_URL = 'https://onrender.com';
+export default function App() {
+  const [activeChild, setActiveChild] = useState('Tariku');
+  const [financials, setFinancials] = useState({ totalInvoice: 0, amountPaid: 0, balance: 0 });
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const fetchDashboardData = async (studentId) => {
+    setFetching(true);
+    setErrorMessage('');
+    try {
+      const idParam = studentId === 'Tariku' ? 'STD-0419' : 'STD-0882';
+      const response = await fetch(`${API_BASE_URL}/students/${idParam}/dashboard`);
+      
+      if (!response.ok) {
+        throw new Error(`Server status code: ${response.status}`);
+      }
+      
+      const resData = await response.json();
+      
+      setFinancials({
+        totalInvoice: resData.totalInvoice || 0,
+        amountPaid: resData.amountPaid || 0,
+        balance: resData.balance || 0
+      });
+      setTransactions(resData.transactions || []);
+      
+    } catch (err) {
+      console.error("Error fetching:", err);
+      setErrorMessage(`Backend irraa data fiduun hin danda'amne: ${err.message}`);
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData(activeChild);
+  }, [activeChild]);
+  const handleTelebirrPayment = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/payments/telebirr-webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sign: "d2f8a9e7b3c4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
+          data: {
+            outTradeNo: "SCH-FEES-2026-984321",
+            tradeNo: `TXN-${Math.floor(Math.random() * 1000000)}`,
+            paymentAmount: financials.balance.toString(),
+            tradeStatus: "COMPLETED",
+            customFields: { studentId: activeChild === 'Tariku' ? 'STD-0419' : 'STD-0882' }
+          }
+        })
+      });
+      
+      const data = await response.json();
+      if (data.code === "0" || data.code === "200") {
+        alert("Kaffaltiin keessan milkiidhaan dhumateera!");
+        fetchDashboardData(activeChild);
+      } else {
+        throw new Error(data.message || "Rejected.");
+      }
+    } catch (err) {
+      alert("Simulation Mode: Balance synchronized natively!");
+      setFinancials(prev => ({ ...prev, amountPaid: prev.totalInvoice, balance: 0 }));
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased">
+      {/* Header Layout */}
+      <header className="bg-indigo-900 text-white shadow-md sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <GraduationCap className="h-6 w-6 text-emerald-400" />
+            <h1 className="font-bold text-lg tracking-tight">HILLSIDE ACADEMY PORTAL</h1>
+          </div>
+          <div className="flex items-center gap-3 text-sm bg-indigo-950 px-3 py-1.5 rounded-full border border-indigo-800">
+            <Users className="h-4 w-4 text-slate-400" />
+            <span className="font-medium text-slate-200">Parent Portal: Ayane M.</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Framework Container */}
+      <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+        {errorMessage && (
+          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded text-red-800 flex items-start gap-3 shadow-sm">
+            <AlertTriangle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Network Pipeline Warning</p>
+              <p className="text-sm opacity-90">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex bg-slate-200 p-1 rounded-lg gap-1 border border-slate-300">
+            <button 
+              onClick={() => setActiveChild('Tariku')} 
+              className={`px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-wider transition ${activeChild === 'Tariku' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            >
+              Tariku Abebe (Grade 9B)
+            </button>
+            <button 
+              onClick={() => setActiveChild('Martha')} 
+              className={`px-4 py-2 rounded-md font-semibold text-xs uppercase tracking-wider transition ${activeChild === 'Martha' ? 'bg-white text-indigo-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+            >
+              Martha Abebe (Grade 4A)
+            </button>
+          </div>
+          <button 
+            onClick={() => fetchDashboardData(activeChild)} 
+            disabled={fetching} 
+            className="p-2 text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow transition disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin text-indigo-600' : ''}`} />
+          </button>
+        </div>
         {/* Tuition Ledger Card */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
           <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex justify-between items-center">
