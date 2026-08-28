@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom/client';
 import { 
   CreditCard, Landmark, Users, GraduationCap, CheckCircle2, AlertTriangle, 
   RefreshCw, Download, LayoutDashboard, FileText, Settings, Phone, Mail, 
-  Timer, Award, Calendar, Clock, Percent, ShieldCheck 
+  Timer, Award, Calendar, Clock, Percent, ShieldCheck, ShieldAlert 
 } from 'lucide-react';
 import TeacherDashboard from './TeacherDashboard';
 
-// Ensure your Tailwind global stylesheet directives are parsed into the compilation stream
 import './index.css'; 
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api/v1'
-  : 'https://smart-school-system-gdk5.onrender.com/api/v1';
+  : 'https://onrender.com';
 
 const LOCALIZATION_DICTIONARY = {
   en: {
@@ -35,7 +35,8 @@ const LOCALIZATION_DICTIONARY = {
     settingHeader: "Parent Communication Channel Configuration", settingSub: "Manage delivery targets for direct notification vectors regarding attendance or billing metrics.",
     setSmsLabel: "SMS Alert Contact Number", setEmailLabel: "Primary Email Address", setFrequencyLabel: "Notification Telemetry Frequency",
     setFreqDaily: "Daily Summary Logs", setFreqWeekly: "Weekly Digests", setFreqCritical: "Critical Infractions Only",
-    setSaveBtn: "Commit Configuration Parameter Updates", setSuccessAlert: "Parent profile contact channels modified successfully!"
+    setSaveBtn: "Commit Configuration Parameter Updates", setSuccessAlert: "Parent profile contact channels modified successfully!",
+    adminTab: "Admin Control", enrollBtn: "Execute Student Enrollment", cbeBtn: "Verify CBE Bank Transfer"
   },
   am: {
     portalTitle: "🏢 ሂልሳይድ አካዳሚ ፖርታል", parentView: "የወላጅ እይታ:",
@@ -58,7 +59,8 @@ const LOCALIZATION_DICTIONARY = {
     settingHeader: "የወላጅ የመገናኛ ሰርጥ ውቅረት ቅንብሮች", settingSub: "ስለ መገኘት ወይም የክፍያ መለኪያዎች ቀጥተኛ የማሳወቂያ ማቅረቢያዎችን ያስተዳድሩ።",
     setSmsLabel: "የኤስኤምኤስ (SMS) ስልክ ቁጥር", setEmailLabel: "ዋናው የኢሜይል አድራሻ", setFrequencyLabel: "የማሳወቂያዎች ድግግሞሽ መጠን",
     setFreqDaily: "የዕለት ተዕለት ማጠቃለያ መዝገብ", setFreqWeekly: "ሳምንታዊ ማጠቃለያዎች", setFreqCritical: "አስቸኳይ ሁኔታዎች ብቻ",
-    setSaveBtn: "ለውጦችን በቋሚነት አስቀምጥ", setSuccessAlert: "የወላጅ መገለጫ መገናኛ ሰርጦች በተሳካ ሁኔታ ተሻሽለዋል!"
+    setSaveBtn: "ለውጦችን በቋሚነት አስቀምጥ", setSuccessAlert: "የወላጅ መገለጫ መገናኛ ሰርጦች በተሳካ ሁኔታ ተሻሽለዋል!",
+    adminTab: "አስተዳዳሪ", enrollBtn: "ተማሪውን በቋሚነት መዝግብ", cbeBtn: "የCBE የባንክ ማስተላለፍን አረጋግጥ"
   }
 };
 function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
@@ -75,11 +77,6 @@ function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
     timerRef.current = setInterval(() => setTimeLeft(p => p - 1), 1000);
     return () => clearInterval(timerRef.current);
   }, [timeLeft]);
-
-  const handleSelectAnswer = (qIdx, opt) => {
-    if (isSubmitted) return;
-    setAnswers({ ...answers, [qIdx]: opt });
-  };
 
   const submitExamPayload = async () => {
     clearInterval(timerRef.current);
@@ -107,7 +104,7 @@ function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
 
   if (isSubmitted && result) {
     return (
-      <div className="max-w-2xl mx-auto my-4 bg-white border border-slate-200 rounded-2xl shadow-md p-8 text-center animate-fade-in">
+      <div className="max-w-2xl mx-auto my-4 bg-white border border-slate-200 rounded-2xl shadow p-8 text-center animate-fade-in">
         <Award size={48} className="mx-auto text-emerald-600 mb-4" />
         <h2 className="text-2xl font-bold text-slate-800">{t.quizSuccessTitle}</h2>
         <p className="text-slate-500 mt-2">{t.quizSuccessSub}, {studentName}.</p>
@@ -137,7 +134,7 @@ function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
             <h3 className="text-slate-800 font-bold text-sm">{qIndex + 1}. {q.questionText}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {q.options.map((opt, oIdx) => (
-                <button key={oIdx} type="button" onClick={() => handleSelectAnswer(qIndex, opt)} className={`text-left p-3.5 rounded-xl border text-xs font-medium transition-all ${answers[qIndex] === opt ? 'border-indigo-600 bg-indigo-50 font-bold ring-2 ring-indigo-600/10' : 'border-slate-200'}`}>
+                <button key={oIdx} type="button" onClick={() => setAnswers({ ...answers, [qIndex]: opt })} className={`text-left p-3.5 rounded-xl border text-xs font-medium transition-all ${answers[qIndex] === opt ? 'border-indigo-600 bg-indigo-50 font-bold ring-2 ring-indigo-600/10' : 'border-slate-200'}`}>
                   {opt}
                 </button>
               ))}
@@ -162,12 +159,12 @@ function DashboardContentGrid({ activeChild, t }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h3 className="text-sm font-black uppercase text-slate-700 mb-4 border-b border-slate-100 pb-2 flex items-center gap-1.5"><Calendar size={16} /> {t.dashAttendanceHeader}</h3>
+      <section className="bg-white rounded-xl border p-6 shadow-sm">
+        <h3 className="text-sm font-black text-slate-700 mb-4 border-b pb-2">📊 {t.dashAttendanceHeader}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashPresent}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.present}</div></div>
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashAbsent}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.absent}</div></div>
-          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashLate}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.late}</div></div>
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashPresent}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.present}</div></div>
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashAbsent}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.absent}</div></div>
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashLate}</span><div className="text-2xl font-black text-slate-800 mt-1 font-mono">{metrics.late}</div></div>
           <div className="p-4 bg-slate-900 text-white rounded-xl shadow-inner flex flex-col justify-between">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1"><Clock size={12}/>{t.dashRate}</span>
             <div className="text-2xl font-black text-emerald-400 font-mono mt-1">{rate}%</div>
@@ -175,8 +172,8 @@ function DashboardContentGrid({ activeChild, t }) {
           </div>
         </div>
       </section>
-      <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h3 className="text-sm font-black uppercase text-slate-700 mb-4 border-b border-slate-100 pb-2 flex items-center gap-1.5"><ShieldCheck size={16} /> {t.dashPerformanceHeader}</h3>
+      <section className="bg-white rounded-xl border p-6 shadow-sm">
+        <h3 className="text-sm font-black text-slate-700 mb-4 border-b pb-2">🎯 {t.dashPerformanceHeader}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
           <div><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashCurrentGPA}</span><div className="text-3xl font-extrabold text-indigo-600 mt-1 font-mono">{metrics.gpa}</div></div>
           <div className="pt-4 md:pt-0 md:px-6"><span className="text-xs font-bold text-slate-400 block uppercase">{t.dashClassRank}</span><div className="text-2xl font-black text-slate-800 mt-1">{metrics.rank}</div></div>
@@ -197,6 +194,67 @@ function SettingsPanelForm({ t }) {
       </div>
       <div className="p-4 bg-slate-50 border-t border-slate-200 text-right"><button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">{t.setSaveBtn}</button></div>
     </form>
+  );
+}
+function AdminControlPanel({ t }) {
+  const [adminToken, setAdminToken] = useState("FidelPortalSecurePasskey2026");
+  const [studentName, setStudentName] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("8A");
+  const [tuitionFee, setTuitionAmount] = useState("45000");
+
+  const [cbeStudentId, setCbeStudentId] = useState("");
+  const [cbeRef, setCbeRef] = useState("CBE-TXN-" + Math.floor(Math.random() * 100000));
+  const [cbeAmount, setCbeAmount] = useState("");
+
+  const handleEnrollStudent = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/enroll-student`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ firstName: studentName, gradeLevel: gradeLevel, tuitionAmount: tuitionFee })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+      if (res.ok) setStudentName("");
+    } catch { alert("Data pipeline transmission disconnect."); }
+  };
+
+  const handleProcessCBE = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_BASE_URL}/payments/cbe-transfer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+        body: JSON.stringify({ studentId: cbeStudentId, transactionRef: cbeRef, amountPaid: cbeAmount })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+      if (res.ok) setCbeAmount("");
+    } catch { alert("Ledger pipeline handshake disconnect."); }
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto my-2 animate-fade-in text-xs font-medium">
+      <form onSubmit={handleEnrollStudent} className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
+        <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide border-b pb-2 flex items-center gap-1.5"><ShieldAlert size={16} /> Student Profile Enrollment</h3>
+        <div><label className="block text-slate-400 font-bold mb-1 uppercase">Security Passkey Header</label><input type="password" value={adminToken} onChange={e => setAdminToken(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-mono text-indigo-600 font-bold"/></div>
+        <div><label className="block text-slate-500 font-bold mb-1">First Name String</label><input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g., Almaz" className="w-full p-2 border rounded-xl" required/></div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="block text-slate-500 font-bold mb-1">Grade Level</label><select value={gradeLevel} onChange={e => setGradeLevel(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-bold"><option value="8A">Grade 8A</option><option value="9B">Grade 9B</option></select></div>
+          <div><label className="block text-slate-500 font-bold mb-1">Tuition Base (ETB)</label><input type="number" value={tuitionFee} onChange={e => setTuitionAmount(e.target.value)} className="w-full p-2 border rounded-xl font-mono font-bold"/></div>
+        </div>
+        <button type="submit" className="w-full bg-slate-900 text-white font-bold uppercase tracking-wider py-2.5 rounded-xl text-[11px]">{t.enrollBtn}</button>
+      </form>
+
+      <form onSubmit={handleProcessCBE} className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
+        <h3 className="text-sm font-black text-slate-800 uppercase tracking-wide border-b pb-2 flex items-center gap-1.5"><Landmark size={16} /> CBE Bank Transaction Ledger</h3>
+        <div><label className="block text-slate-500 font-bold mb-1">Target Student ID</label><input type="number" value={cbeStudentId} onChange={e => setCbeStudentId(e.target.value)} placeholder="Enter system auto-increment index ID" className="w-full p-2 border rounded-xl font-mono" required/></div>
+        <div><label className="block text-slate-500 font-bold mb-1">CBE Reference ID</label><input type="text" value={cbeRef} onChange={e => setCbeRef(e.target.value)} className="w-full p-2 bg-slate-50 border rounded-xl font-mono font-bold"/></div>
+        <div><label className="block text-slate-500 font-bold mb-1">Amount Transferred (ETB)</label><input type="number" value={cbeAmount} onChange={e => setCbeAmount(e.target.value)} placeholder="e.g., 18500" className="w-full p-2 border rounded-xl font-mono font-bold" required/></div>
+        <button type="submit" className="w-full bg-indigo-600 text-white font-bold uppercase tracking-wider py-2.5 rounded-xl text-[11px]">{t.cbeBtn}</button>
+      </form>
+    </div>
   );
 }
 export default function App() {
@@ -225,9 +283,13 @@ export default function App() {
         <header className="bg-indigo-900 text-white shadow-md">
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-2"><GraduationCap className="h-6 w-6 text-emerald-400" /><h1 className="font-extrabold text-sm tracking-wider">{t.portalTitle}</h1></div>
-            <div className="flex gap-2">
-              <button onClick={() => setUserRole(userRole === 'Parent' ? 'Teacher' : 'Parent')} className={`border px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide uppercase transition ${userRole === 'Teacher' ? 'bg-emerald-500 border-emerald-600 text-white shadow' : 'bg-indigo-950 border-indigo-800 text-slate-300'}`}>Role: {userRole}</button>
-              <button onClick={() => setLang(lang === 'en' ? 'am' : 'en')} className="bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide transition">🌐 {lang === 'en' ? 'አማርኛ' : 'English'}</button>
+            <div className="flex gap-2 text-xs">
+              <select value={userRole} onChange={e => { setUserRole(e.target.value); setCurrentTab('Dashboard'); }} className="bg-indigo-950 border border-indigo-800 text-white p-1.5 rounded-lg font-bold font-mono">
+                <option value="Parent">Role: Parent</option>
+                <option value="Teacher">Role: Teacher</option>
+                <option value="Admin">Role: Admin</option>
+              </select>
+              <button onClick={() => setLang(lang === 'en' ? 'am' : 'en')} className="bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg font-mono font-bold tracking-wide transition">🌐 {lang === 'en' ? 'አማርኛ' : 'English'}</button>
             </div>
           </div>
           {userRole === 'Parent' && (
@@ -242,7 +304,7 @@ export default function App() {
         </header>
 
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
-          {userRole === 'Teacher' ? <TeacherDashboard /> : (
+          {userRole === 'Teacher' ? <TeacherDashboard /> : userRole === 'Admin' ? <AdminControlPanel t={t} /> : (
             <>
               <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-fade-in">
                 <div>
@@ -276,3 +338,7 @@ export default function App() {
   );
 }
 
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(<App />);
+}
