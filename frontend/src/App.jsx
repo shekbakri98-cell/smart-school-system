@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom/client';
 import { 
   CreditCard, Landmark, Users, GraduationCap, CheckCircle2, 
   AlertTriangle, RefreshCw, Download, LayoutDashboard, FileText, 
-  Settings, Phone, Mail, Timer, Award 
+  Settings, Phone, Mail, Timer, Award, Calendar, Clock, Percent, ShieldCheck
 } from 'lucide-react';
+import TeacherDashboard from './TeacherDashboard';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api/v1'
   : 'https://smart-school-system-gdk5.onrender.com/api/v1';
 
 
-// Global Localization Matrix Object Configuration Mapping
 const LOCALIZATION_DICTIONARY = {
   en: {
     portalTitle: "🏢 HILLSIDE ACADEMY PORTAL",
@@ -45,7 +46,26 @@ const LOCALIZATION_DICTIONARY = {
     quizScoreLabel: "Total Verified Score",
     quizFooterLabel: "Logged safely to FidelPortal cluster data matrices.",
     workspaceTitle: "Workspace Section",
-    workspaceSub: "Dynamic layout modules routing through core API instances seamlessly."
+    workspaceSub: "Dynamic modules routing through core API instances seamlessly.",
+    dashAttendanceHeader: "Attendance Tracking Metrics",
+    dashPerformanceHeader: "Continuous Assessment Progress Indicators",
+    dashPresent: "Days Present",
+    dashAbsent: "Days Absent",
+    dashLate: "Days Late",
+    dashRate: "Total Attendance Rate",
+    dashCurrentGPA: "Current Cumulative GPA",
+    dashClassRank: "Academic Class Standings",
+    dashTargetHeader: "Target Academic Goals",
+    settingHeader: "Parent Communication Channel Configuration",
+    settingSub: "Manage delivery targets for direct notification vectors regarding attendance or billing metrics.",
+    setSmsLabel: "SMS Alert Contact Number",
+    setEmailLabel: "Primary Email Address",
+    setFrequencyLabel: "Notification Telemetry Frequency",
+    setFreqDaily: "Daily Summary Logs",
+    setFreqWeekly: "Weekly Digests",
+    setFreqCritical: "Critical Infractions Only",
+    setSaveBtn: "Commit Configuration Parameter Updates",
+    setSuccessAlert: "Parent profile contact channels modified successfully!"
   },
   am: {
     portalTitle: "🏢 ሂልሳይድ አካዳሚ ፖርታል",
@@ -80,7 +100,26 @@ const LOCALIZATION_DICTIONARY = {
     quizScoreLabel: "የተረጋገጠ አጠቃላይ ውጤት",
     quizFooterLabel: "በፊደል ፖርታል የዳታ ማዕከል ውስጥ በደህና ተቀምጧል።",
     workspaceTitle: "የስራ ቦታ ክፍለ ጊዜ",
-    workspaceSub: "ተለዋዋጭ የአቀማመጥ ሞጁሎች በዋና ኤፒአይ አማካኝነት ያለምንም እንከን ይሰራሉ።"
+    workspaceSub: "ተለዋዋጭ የአቀማመጥ ሞጁሎች በዋና ኤፒአይ አማካኝነት ያለምንም እንከን ይሰራሉ።",
+    dashAttendanceHeader: "የተማሪዎች የትምህርት ቤት መገኘት መከታተያ",
+    dashPerformanceHeader: "የተከታታይ ምዘና የውጤት አመልካቾች",
+    dashPresent: "የተገኘባቸው ቀናት",
+    dashAbsent: "የቀረባቸው ቀናት",
+    dashLate: "ያረፈደባቸው ቀናት",
+    dashRate: "አጠቃላይ የትምህርት ቤት መገኘት ምጣኔ",
+    dashCurrentGPA: "የአሁኑ ጠቅላላ ውጤት (GPA)",
+    dashClassRank: "በትምህርት ክፍል ውስጥ ያለ ደረጃ",
+    dashTargetHeader: "የታለሙ የውጤት ግቦች",
+    settingHeader: "የወላጅ የመገናኛ ሰርጥ ውቅረት ቅንብሮች",
+    settingSub: "ስለ መገኘት ወይም የክፍያ መለኪያዎች ቀጥተኛ የማሳወቂያ ማቅረቢያዎችን ያስተዳድሩ።",
+    setSmsLabel: "የኤስኤምኤስ (SMS) ስልክ ቁጥር",
+    setEmailLabel: "ዋናው የኢሜይል አድራሻ",
+    setFrequencyLabel: "የማሳወቂያዎች ድግግሞሽ መጠን",
+    setFreqDaily: "የዕለት ተዕለት ማጠቃለያ መዝገብ",
+    setFreqWeekly: "ሳምንታዊ ማጠቃለያዎች",
+    setFreqCritical: "አስቸኳይ ሁኔታዎች ብቻ",
+    setSaveBtn: "ለውጦችን በቋሚነት አስቀምጥ",
+    setSuccessAlert: "የወላጅ መገለጫ መገናኛ ሰርጦች በተሳካ ሁኔታ ተሻሽለዋል!"
   }
 };
 function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
@@ -93,94 +132,49 @@ function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (timeLeft <= 0) {
-      handleAutoSubmit();
-      return;
-    }
-    timerRef.current = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
+    if (timeLeft <= 0) { submitExamPayload(); return; }
+    timerRef.current = setInterval(() => setTimeLeft(p => p - 1), 1000);
     return () => clearInterval(timerRef.current);
   }, [timeLeft]);
 
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (!isSubmitted) {
-        e.preventDefault();
-        e.returnValue = 'Warning: Your active exam answers will be wiped out if you leave.';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isSubmitted]);
-
-  const handleSelectAnswer = (questionIndex, selectedOption) => {
+  const handleSelectAnswer = (qIdx, opt) => {
     if (isSubmitted) return;
-    setAnswers({ ...answers, [questionIndex]: selectedOption });
+    setAnswers({ ...answers, [qIdx]: opt });
   };
 
   const submitExamPayload = async () => {
     clearInterval(timerRef.current);
     setLoading(true);
-    const userAnswersArray = questions.map((_, idx) => answers[idx] || null);
-    const correctAnswersArray = questions.map((q) => q.correctAnswer);
-
     try {
       const response = await fetch(`${API_BASE_URL}/exams/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentName,
-          examId,
-          userAnswers: userAnswersArray,
-          correctAnswers: correctAnswersArray
+          studentName, examId,
+          userAnswers: questions.map((_, idx) => answers[idx] || null),
+          correctAnswers: questions.map(q => q.correctAnswer)
         })
       });
       const data = await response.json();
       setResult(data);
       setIsSubmitted(true);
       if (onQuizComplete) onQuizComplete(data);
-    } catch (error) {
-      console.error('Submission failed, triggering mock fallback matrix:', error);
+    } catch {
       let score = 0;
-      questions.forEach((q, idx) => {
-        if (answers[idx] === q.correctAnswer) score++;
-      });
+      questions.forEach((q, idx) => { if (answers[idx] === q.correctAnswer) score++; });
       setResult({ score, total: questions.length });
       setIsSubmitted(true);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
-
-  const handleManualSubmit = () => {
-    if (window.confirm('Are you absolutely sure you want to finalize and turn in your exam sheets?')) {
-      submitExamPayload();
-    }
-  };
-
-  const handleAutoSubmit = () => {
-    submitExamPayload();
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const isTimeCritical = timeLeft < 60;
 
   if (isSubmitted && result) {
     return (
-      <div className="max-w-2xl mx-auto my-4 bg-white border border-slate-100 rounded-2xl shadow p-8 text-center animate-fade-in">
-        <div className="inline-flex items-center justify-center p-4 bg-emerald-50 rounded-full text-emerald-600 mb-4">
-          <Award size={48} />
-        </div>
+      <div className="max-w-2xl mx-auto my-4 bg-white border rounded-2xl shadow p-8 text-center animate-fade-in">
+        <Award size={48} className="mx-auto text-emerald-600 mb-4" />
         <h2 className="text-2xl font-bold text-slate-800">{t.quizSuccessTitle}</h2>
         <p className="text-slate-500 mt-2">{t.quizSuccessSub}, {studentName}.</p>
         <div className="my-6 p-6 bg-slate-50 rounded-xl inline-block min-w-[200px]">
-          <span className="block text-sm uppercase tracking-wider text-slate-400 font-semibold">{t.quizScoreLabel}</span>
+          <span className="block text-sm font-semibold text-slate-400">{t.quizScoreLabel}</span>
           <span className="text-4xl font-extrabold text-indigo-600">{result.score} / {result.total}</span>
         </div>
         <div className="text-sm text-slate-400 italic">{t.quizFooterLabel}</div>
@@ -189,78 +183,102 @@ function OnlineQuiz({ quizData, studentName, onQuizComplete, t }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+    <div className="max-w-3xl mx-auto bg-white rounded-2xl border shadow-sm overflow-hidden">
+      <div className="bg-slate-50 border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wide text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">{subject}</span>
+          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">{subject}</span>
           <h1 className="text-lg font-bold text-slate-800 mt-1">{t.quizHeader}</h1>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold shadow-inner ${
-          isTimeCritical ? 'bg-red-50 text-red-600 border border-red-200 animate-pulse' : 'bg-slate-900 text-emerald-400'
-        }`}>
-          <Timer size={20} />
-          <span>{formatTime(timeLeft)}</span>
+        <div className={`px-4 py-2 rounded-xl font-mono text-lg font-bold ${timeLeft < 60 ? 'bg-red-50 text-red-600 animate-pulse' : 'bg-slate-900 text-emerald-400'}`}>
+          {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
       </div>
       <div className="p-6 space-y-6">
-        {isTimeCritical && (
+        {timeLeft < 60 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-amber-800 text-sm">
             <AlertTriangle className="shrink-0 text-amber-500" size={20} />
             <div>{t.quizWarning}</div>
           </div>
         )}
         {questions.map((q, qIndex) => (
-          <div key={qIndex} className="bg-white rounded-xl border border-slate-200 p-5 space-y-3 shadow-sm">
-            <h3 className="text-slate-800 font-semibold flex gap-2">
-              <span className="text-slate-400 font-mono">{qIndex + 1}.</span> {q.questionText}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-              {q.options.map((option, optIndex) => {
-                const isSelected = answers[qIndex] === option;
-                return (
-                  <button
-                    key={optIndex}
-                    type="button"
-                    onClick={() => handleSelectAnswer(qIndex, option)}
-                    className={`flex items-center text-left p-3.5 rounded-xl border transition-all ${
-                      isSelected 
-                        ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 font-medium ring-2 ring-indigo-600/10' 
-                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className={`w-4 h-4 rounded-full border flex items-center justify-center mr-3 text-xs ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'}`}>
-                      {isSelected && '✓'}
-                    </span>
-                    {option}
-                  </button>
-                );
-              })}
+          <div key={qIndex} className="bg-white rounded-xl border p-5 shadow-sm space-y-3">
+            <h3 className="text-slate-800 font-semibold">{qIndex + 1}. {q.questionText}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {q.options.map((opt, oIdx) => (
+                <button key={oIdx} type="button" onClick={() => handleSelectAnswer(qIndex, opt)} className={`text-left p-3 rounded-xl border transition-all ${answers[qIndex] === opt ? 'border-indigo-600 bg-indigo-50 font-medium' : 'border-slate-200'}`}>
+                  {opt}
+                </button>
+              ))}
             </div>
           </div>
         ))}
       </div>
-      <div className="bg-slate-50 border-t border-slate-200 px-6 py-4 flex items-center justify-between">
-        <span className="text-sm text-slate-500 font-medium">{t.quizProgress} {Object.keys(answers).length} / {questions.length}</span>
-        <button
-          onClick={handleManualSubmit}
-          disabled={loading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2.5 rounded-xl border-b-2 border-indigo-800 shadow transition-all disabled:opacity-50"
-        >
+      <div className="bg-slate-50 border-t px-6 py-4 flex justify-between items-center">
+        <span className="text-sm font-medium text-slate-500">{t.quizProgress} {Object.keys(answers).length} / {questions.length}</span>
+        <button onClick={() => window.confirm('Submit answers?') && submitExamPayload()} disabled={loading} className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold transition hover:bg-indigo-700">
           {loading ? '...' : t.quizSubmit}
         </button>
       </div>
     </div>
   );
 }
+function DashboardContentGrid({ activeChild, t }) {
+  const metrics = activeChild === 'Tariku' 
+    ? { present: 74, absent: 2, late: 4, total: 80, gpa: "3.62", rank: "4 / 42", target: "3.80" }
+    : { present: 78, absent: 0, late: 2, total: 80, gpa: "3.94", rank: "1 / 38", target: "4.00" };
+  const rate = parseFloat(((metrics.present / metrics.total) * 100).toFixed(1));
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <section className="bg-white rounded-xl border p-6 shadow-sm">
+        <h3 className="text-sm font-black text-slate-700 mb-4 border-b pb-2">📊 {t.dashAttendanceHeader}</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block">{t.dashPresent}</span><div className="text-2xl font-black mt-1">{metrics.present}</div></div>
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block">{t.dashAbsent}</span><div className="text-2xl font-black mt-1">{metrics.absent}</div></div>
+          <div className="p-4 bg-slate-50 border rounded-xl"><span className="text-xs font-bold text-slate-400 block">{t.dashLate}</span><div className="text-2xl font-black mt-1">{metrics.late}</div></div>
+          <div className="p-4 bg-slate-900 text-white rounded-xl shadow-inner">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.dashRate}</span>
+            <div className="text-2xl font-black text-emerald-400 mt-1">{rate}%</div>
+            <div className="w-full bg-slate-800 h-1 rounded-full mt-2"><div className="bg-emerald-400 h-full rounded-full" style={{ width: `${rate}%` }} /></div>
+          </div>
+        </div>
+      </section>
+      <section className="bg-white rounded-xl border p-6 shadow-sm">
+        <h3 className="text-sm font-black text-slate-700 mb-4 border-b pb-2">🎯 {t.dashPerformanceHeader}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
+          <div><span className="text-xs font-bold text-slate-400 block">{t.dashCurrentGPA}</span><div className="text-3xl font-extrabold text-indigo-600 mt-1">{metrics.gpa}</div></div>
+          <div><span className="text-xs font-bold text-slate-400 block">{t.dashClassRank}</span><div className="text-2xl font-black text-slate-800 mt-1">{metrics.rank}</div></div>
+          <div><span className="text-xs font-bold text-slate-400 block">{t.dashTargetHeader}</span><div className="text-2xl font-black text-slate-400 mt-1">{metrics.target}</div></div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function SettingsPanelForm({ t }) {
+  const [sms, setSms] = useState("+251-000-234567");
+  const [email, setEmail] = useState("parent.ayane@fidel.edu.et");
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); alert(t.setSuccessAlert); }} className="bg-white rounded-xl border max-w-2xl mx-auto overflow-hidden shadow-sm">
+      <div className="p-5 bg-slate-50 border-b"><h3 className="font-black text-slate-700 text-sm uppercase tracking-wider">{t.settingHeader}</h3><p className="text-xs text-slate-400 mt-1">{t.settingSub}</p></div>
+      <div className="p-6 space-y-4">
+        <div><label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t.setSmsLabel}</label><input value={sms} onChange={e => setSms(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-xl text-sm font-medium"/></div>
+        <div><label className="block text-xs font-bold text-slate-500 mb-2 uppercase">{t.setEmailLabel}</label><input value={email} onChange={e => setEmail(e.target.value)} className="w-full p-2.5 bg-slate-50 border rounded-xl text-sm font-medium"/></div>
+      </div>
+      <div className="p-4 bg-slate-50 border-t text-right"><button type="submit" className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider">{t.setSaveBtn}</button></div>
+    </form>
+  );
+}
 export default function App() {
-  const [lang, setLang] = useState('en'); 
+  const [userRole, setUserRole] = useState(() => localStorage.getItem('smart_portal_role') || 'Parent');
+  const [lang, setLang] = useState(() => localStorage.getItem('smart_portal_lang') || 'en');
   const [currentTab, setCurrentTab] = useState('Fees & Payments');
   const [activeChild, setActiveChild] = useState('Tariku');
   const [financials, setFinancials] = useState({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => { localStorage.setItem('smart_portal_role', userRole); }, [userRole]);
+  useEffect(() => { localStorage.setItem('smart_portal_lang', lang); }, [lang]);
 
   const t = LOCALIZATION_DICTIONARY[lang];
 
@@ -269,235 +287,86 @@ export default function App() {
     subject: activeChild === 'Tariku' ? 'Mathematics (Grade 9B)' : 'General Science (Grade 4A)',
     totalTimeMinutes: 3,
     questions: [
-      {
-        questionText: "If 3x + 7 = 22, calculate the isolated parameter value of x.",
-        options: ["x = 3", "x = 5", "x = 6", "x = 4"],
-        correctAnswer: "x = 5"
-      },
-      {
-        questionText: "Which payment platform is primarily built into the Ethiopian mobile finance structure?",
-        options: ["PayPal", "Stripe", "Telebirr", "Apple Pay"],
-        correctAnswer: "Telebirr"
-      }
+      { questionText: "If 3x + 7 = 22, calculate the isolated parameter value of x.", options: ["x = 3", "x = 5", "x = 6", "x = 4"], correctAnswer: "x = 5" },
+      { questionText: "Which payment platform is primarily built into the Ethiopian mobile finance structure?", options: ["PayPal", "Stripe", "Telebirr", "Apple Pay"], correctAnswer: "Telebirr" }
     ]
   };
 
-  const fetchDashboardData = async (studentId) => {
-    setFetching(true);
-    setErrorMessage('');
-    try {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      if (studentId === 'Tariku') {
-        setFinancials({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
-        setTransactions([
-          { date: 'Aug 25, 2026', ref: '9FL5XYZ7820', amount: '18,500.00', status: 'SUCCESS', method: 'telebirr' },
-          { date: 'May 02, 2026', ref: 'CBE-FT-99120', amount: '8,000.00', status: 'SUCCESS', method: 'CBE Transfer' },
-          { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '20,000.00', status: 'SUCCESS', method: 'telebirr' }
-        ]);
-      } else {
-        setFinancials({ totalInvoice: 45000, amountPaid: 45000, balance: 0 });
-        setTransactions([
-          { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '45,000.00', status: 'SUCCESS', method: 'telebirr' }
-        ]);
-      }
-    } catch (err) {
-      setErrorMessage('Pipeline dropped connection. Verify live deployment status hooks.');
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  useEffect(() => { fetchDashboardData(activeChild); }, [activeChild]);
-
-  const handleTelebirrPayment = async () => {
-    setLoading(true);
-    try {
-      await fetch(`${API_BASE_URL}/payments/telebirr-webhook`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sign: "d2f8a9e7b3c4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0",
-          data: { outTradeNo: "SCH-FEES-2026-984321", tradeNo: `TXN-${Math.floor(Math.random() * 1000000)}`, paymentAmount: financials.balance.toString(), tradeStatus: "COMPLETED", customFields: { studentId: activeChild } }
-        })
-      });
-      alert("telebirr payment processed successfully via webhook logic!");
-      fetchDashboardData(activeChild);
-    } catch (err) {
-      setFinancials(prev => ({ ...prev, amountPaid: prev.totalInvoice, balance: 0 }));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDownloadPDF = () => {
-    const link = document.createElement('a');
-    link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HILLSIDE ACADEMY STATEMENT\nChild: ${activeChild}\nPaid: ${financials.amountPaid} ETB`);
-    link.download = `Statement_${activeChild}.txt`;
-    link.click();
-  };
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 font-sans antialiased flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-100 flex flex-col justify-between text-slate-800 font-sans antialiased">
       <div>
         <header className="bg-indigo-900 text-white shadow-md">
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-emerald-400" />
-              <h1 className="font-extrabold text-lg tracking-wider">{t.portalTitle}</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Language Switcher Toggle */}
-              <button 
-                onClick={() => setLang(lang === 'en' ? 'am' : 'en')}
-                className="bg-indigo-800/80 hover:bg-indigo-700 text-white text-xs font-bold font-mono tracking-wide px-3 py-1.5 rounded-lg border border-indigo-700 transition"
-              >
-                🌐 {lang === 'en' ? 'አማርኛ (AM)' : 'English (EN)'}
+            <div className="flex items-center gap-2"><GraduationCap className="h-5 w-5 text-emerald-400" /><h1 className="font-extrabold text-sm tracking-wider">{t.portalTitle}</h1></div>
+            <div className="flex gap-2">
+              <button onClick={() => setUserRole(userRole === 'Parent' ? 'Teacher' : 'Parent')} className="bg-indigo-950 border border-indigo-800 px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide uppercase transition hover:bg-indigo-900">
+                Role: {userRole}
               </button>
-
-              <div className="text-sm font-medium bg-indigo-950 px-4 py-1.5 rounded-full border border-indigo-800 flex items-center gap-2">
-                <Users className="h-4 w-4 text-slate-400" /> {t.parentView} Ayane M.
-              </div>
+              <button onClick={() => setLang(lang === 'en' ? 'am' : 'en')} className="bg-indigo-800 border border-indigo-700 px-3 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide transition hover:bg-indigo-700">
+                🌐 {lang === 'en' ? 'አማርኛ' : 'English'}
+              </button>
             </div>
           </div>
-          <div className="bg-indigo-950 border-t border-indigo-800/60">
-            <div className="max-w-5xl mx-auto flex overflow-x-auto">
-              {[
-                { id: 'Dashboard', label: t.tabDashboard, icon: LayoutDashboard },
-                { id: 'Academic Report', label: t.tabAcademic, icon: FileText },
-                { id: 'Fees & Payments', label: t.tabFees, icon: CreditCard },
-                { id: 'Settings', label: t.tabSettings, icon: Settings }
-              ].map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setCurrentTab(tab.id)}
-                  className={`px-5 py-3 text-xs uppercase tracking-wider font-bold border-b-2 font-mono flex items-center gap-2 whitespace-nowrap transition ${currentTab === tab.id ? 'border-emerald-400 text-emerald-400 bg-indigo-900/40' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
-                >
-                  <tab.icon className="h-3.5 w-3.5" /> {tab.label}
-                </button>
-              ))}
+          {userRole === 'Parent' && (
+            <div className="bg-indigo-950 border-t border-indigo-800/60 flex max-w-5xl mx-auto overflow-x-auto">
+              {['Dashboard', 'Academic Report', 'Fees & Payments', 'Settings'].map(tab => {
+                const isSelected = currentTab === tab;
+                const localizedLabel = tab === 'Dashboard' ? t.tabDashboard : tab === 'Academic Report' ? t.tabAcademic : tab === 'Fees & Payments' ? t.tabFees : t.tabSettings;
+                return (
+                  <button key={tab} onClick={() => setCurrentTab(tab)} className={`px-5 py-3 text-xs uppercase font-bold whitespace-nowrap transition-colors border-b-2 ${isSelected ? 'text-emerald-400 border-emerald-400 bg-indigo-900/40' : 'text-slate-400 border-transparent hover:text-slate-200'}`}>{localizedLabel}</button>
+                );
+              })}
             </div>
-          </div>
+          )}
         </header>
+
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
-          {/* Active Student Selector Bar */}
-          <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div>
-              <span className="text-xs uppercase font-bold tracking-widest text-slate-400 block mb-1">{t.profileSelector}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setActiveChild('Tariku')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Tariku' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Tariku Abebe (Grade 9B)</button>
-                <button onClick={() => setActiveChild('Martha')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Martha' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>Martha Abebe (Grade 4A)</button>
-              </div>
-            </div>
-            <button onClick={() => fetchDashboardData(activeChild)} className="p-2 text-slate-400 hover:text-indigo-600 bg-slate-50 border border-slate-200 rounded-lg hover:shadow-sm transition"><RefreshCw className={`h-4 w-4 ${fetching ? 'animate-spin' : ''}`} /></button>
-          </div>
-
-          {/* Conditional Sub-Workspace Router */}
-          {currentTab === 'Academic Report' ? (
-            <div className="space-y-4">
-              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-xs font-semibold text-indigo-800">
-                {t.quizNotice}
-              </div>
-              <OnlineQuiz 
-                quizData={sampleQuizData} 
-                studentName={`${activeChild} Abebe`}
-                onQuizComplete={(res) => alert(`Assessment synced with ledger: ${res.score}/${res.total}`)}
-                t={t}
-              />
-            </div>
-          ) : currentTab !== 'Fees & Payments' ? (
-            <div className="bg-white p-12 rounded-xl text-center border shadow-sm border-slate-200 my-4">
-              <h2 className="text-xl font-bold text-slate-700">{currentTab} {t.workspaceTitle}</h2>
-              <p className="text-sm text-slate-400 mt-2">{t.workspaceSub}</p>
-            </div>
-          ) : (
+          {userRole === 'Teacher' ? <TeacherDashboard /> : (
             <>
-              {/* Financial Dashboard Panel */}
-              <section className="bg-white rounded-xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
-                <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex justify-between items-center">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 flex items-center gap-2"><Landmark className="h-4 w-4 text-indigo-900" /> {t.financialSummary}</h3>
-                  {financials.balance > 0 ? (
-                    <span className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold rounded-md flex items-center gap-1.5 animate-pulse"><AlertTriangle className="h-3 w-3" /> {t.partialOutstanding}</span>
-                  ) : (
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold rounded-md flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> {t.accountSettled}</span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-                  <div className="p-6">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">{t.invoiceTotal}</span>
-                    <span className="text-2xl font-black text-slate-800">{financials.totalInvoice.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></span>
-                  </div>
-                  <div className="p-6 bg-slate-50/50">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">{t.amountPaid}</span>
-                    <span className="text-2xl font-black text-emerald-600">+{financials.amountPaid.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></span>
-                  </div>
-                  <div className="p-6">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">{t.outstandingBalance}</span>
-                    <span className={`text-2xl font-black ${financials.balance > 0 ? 'text-rose-600' : 'text-slate-500'}`}>{financials.balance.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></span>
+              <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <span className="text-xs uppercase font-bold tracking-widest text-slate-400 block mb-1">{t.profileSelector}</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setActiveChild('Tariku')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Tariku' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>Tariku (9B)</button>
+                    <button onClick={() => setActiveChild('Martha')} className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${activeChild === 'Martha' ? 'bg-indigo-900 border-indigo-900 text-white shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>Martha (4A)</button>
                   </div>
                 </div>
+              </div>
 
-                {financials.balance > 0 && (
-                  <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center gap-3">
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                      <CreditCard className="h-4 w-4 text-indigo-600" /> {t.gatewayWarning}
+              {currentTab === 'Dashboard' && <DashboardContentGrid activeChild={activeChild} t={t} />}
+              {currentTab === 'Academic Report' && <OnlineQuiz quizData={sampleQuizData} studentName={`${activeChild} Abebe`} t={t} />}
+              {currentTab === 'Settings' && <SettingsPanelForm t={t} />}
+              {currentTab === 'Fees & Payments' && (
+                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm overflow-hidden">
+                  <h3 className="font-black text-sm uppercase tracking-wider text-slate-700 border-b pb-2 mb-4">💳 {t.financialSummary}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x border rounded-xl overflow-hidden bg-slate-50/50">
+                    <div className="p-5 text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">{t.invoiceTotal}</span>
+                      <div className="text-2xl font-black text-slate-800">{financials.totalInvoice.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></div>
                     </div>
-                    <button
-                      onClick={handleTelebirrPayment}
-                      disabled={loading}
-                      className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg tracking-wide shadow-sm transition active:scale-[0.99] disabled:opacity-50"
-                    >
-                      {loading ? '...' : t.payButton}
-                    </button>
+                    <div className="p-5 text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">{t.amountPaid}</span>
+                      <div className="text-2xl font-black text-emerald-600">+{financials.amountPaid.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></div>
+                    </div>
+                    <div className="p-5 text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1">{t.outstandingBalance}</span>
+                      <div className="text-2xl font-black text-rose-600">{financials.balance.toLocaleString()}.00 <span className="text-xs font-semibold text-slate-400">ETB</span></div>
+                    </div>
                   </div>
-                )}
-              </section>
-
-              {/* Transactions Ledger Panel Matrix */}
-              <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
-                  <h3 className="text-sm font-black uppercase tracking-wider text-slate-700">{t.receiptLogs}</h3>
-                  <button onClick={handleDownloadPDF} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition"><Download className="h-3.5 w-3.5" /> {t.exportStatement}</button>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-100/70 border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
-                        <th className="p-4">{t.thDate}</th>
-                        <th className="p-4">{t.thRef}</th>
-                        <th className="p-4">{t.thGateway}</th>
-                        <th className="p-4">{t.thAmount}</th>
-                        <th className="p-4 text-right">{t.thStatus}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-xs font-medium">
-                      {transactions.map((tx, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-4 text-slate-500">{tx.date}</td>
-                          <td className="p-4 font-mono font-bold text-slate-700">{tx.ref}</td>
-                          <td className="p-4"><span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono ${tx.method === 'telebirr' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>{tx.method}</span></td>
-                          <td className="p-4 font-bold text-slate-900">{tx.amount} ETB</td>
-                          <td className="p-4 text-right"><span className="inline-flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50/50 px-2 py-0.5 rounded-full text-[10px] border border-emerald-100">● {tx.status}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+              )}
             </>
           )}
         </main>
       </div>
-
-      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-medium">
-        <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div>© 2026 Hillside Academy Workspace Portal. Powered securely by FidelPortal Clusters.</div>
-          <div className="flex gap-4 text-[11px] text-slate-500 font-semibold font-mono">
-            <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-slate-400" /> +251-11-XXXXXXX</span>
-            <span className="flex items-center gap-1"><Mail className="h-3 w-3 text-slate-400" /> portal@hillside.edu.et</span>
-          </div>
-        </div>
+      <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-400 font-mono font-medium">
+        Hillside Academy Workspace Portal. Powered securely by FidelPortal Clusters.
       </footer>
     </div>
   );
+}
+
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  ReactDOM.createRoot(rootElement).render(<App />);
 }
