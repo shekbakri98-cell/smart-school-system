@@ -3,7 +3,7 @@ import { CreditCard, Landmark, Users, GraduationCap, CheckCircle2, AlertTriangle
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api/v1'
-  : 'https://onrender.com';
+  : 'https://smart-school-system-gdk5.onrender.com/api/v1';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Dashboard');
