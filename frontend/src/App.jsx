@@ -114,41 +114,55 @@ export default function App() {
         </header>
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
           
-          {/* ADMIN ACTION WINDOW: ACCOUNT REGISTRATION GRID */}
-          {userRole === 'admin' && currentTab === 'Create User Accounts' && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              
-              {/* 1. NEW ACCOUNT CREATION FORM */}
-              <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-xl h-fit">
-                <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <UserPlus className="h-4 w-4 text-indigo-600" /> Account Creator
-                </h2>
-                <form onSubmit={handleCreateAccount} className="space-y-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">User Name</label>
-                    <input type="text" required value={regName} onChange={e => setRegName(e.target.value)} placeholder="e.g. Kedir Ahmed" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
-                    <input type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="name@school.edu.et" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Password</label>
-                    <input type="password" required value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="••••••••" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Assign Portal Role</label>
-                    <select value={regRole} onChange={e => setRegRole(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-white font-semibold mt-1">
-                      <option value="student">Student Portal</option>
-                      <option value="teacher">Teacher Portal</option>
-                      <option value="admin">System Administrator</option>
-                    </select>
-                  </div>
-                  <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition shadow-md">
-                    Provision Account
-                  </button>
-                </form>
+                    {/* ADMIN ACTION WINDOW 2: IDENTITY RECORDS LOG VIEW */}
+          {userRole === 'admin' && currentTab === 'Identity Records Log' && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-fadeIn">
+              <div className="p-5 bg-slate-950 text-white font-bold flex justify-between items-center">
+                <span className="flex items-center gap-2 text-sm">
+                  📋 Full Master Directory (System Admin Records Log)
+                </span>
+                <span className="text-[10px] font-mono bg-slate-800 px-3 py-1 rounded text-slate-400 border border-slate-700">
+                  Total Users Logged: {accounts.length}
+                </span>
               </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                      <th className="p-4 pl-6">ID System Key</th>
+                      <th className="p-4">User Account Name</th>
+                      <th className="p-4">Email Address Database</th>
+                      <th className="p-4">System Assignment Role</th>
+                      <th className="p-4 text-center">Operational Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-mono text-xs text-slate-600">
+                    {accounts.map((acc, index) => (
+                      <tr key={acc.id} className="hover:bg-slate-50/50 transition">
+                        <td className="p-4 pl-6 text-slate-400 font-bold">#US-00{acc.id}</td>
+                        <td className="p-4 font-sans font-black text-slate-900 text-sm">{acc.name}</td>
+                        <td className="p-4 text-xs font-medium text-slate-500">{acc.email}</td>
+                        <td className="p-4">
+                          <span className={`px-2.5 py-1 text-[10px] font-sans font-black rounded border uppercase ${
+                            acc.role === 'admin' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            acc.role === 'teacher' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          }`}>
+                            {acc.role}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="px-2.5 py-1 text-[10px] font-sans font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            ● {acc.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
               {/* 2. RECENT ACCOUNTS IDENTITY AUDIT LOG */}
               <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
