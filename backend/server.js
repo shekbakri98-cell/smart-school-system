@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Alwaysdata MySQL Connection Pool Properties
+// Alwaysdata MySQL Connection Pool Properties Configuration Matrix
 const dbConfig = {
     host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', 
     user: process.env.DB_USER || 'anewar_admin',                
@@ -20,6 +20,7 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
+// Health Engine Checker Route
 app.get('/api/v1/health', async (req, res) => {
     try {
         const [rows] = await pool.execute('SELECT 1');
@@ -28,7 +29,7 @@ app.get('/api/v1/health', async (req, res) => {
         res.status(500).json({ status: "degraded", error: err.message });
     }
 });
-
+// Webhook Processing: Sync transactional parameters via incoming Telebirr payloads
 app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
     const { sign, data } = req.body;
     if (!sign || !data) return res.status(400).json({ code: "400", message: "Malformed parameters" });
@@ -61,7 +62,7 @@ app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
         connection.release();
     }
 });
-
+// PUT Route: Synchronize Continuous Assessment score metrics
 app.put('/api/v1/grades/update', async (req, res) => {
     const { studentId, courseId, ca1, ca2, ca3 } = req.body;
     if (!studentId || !courseId) return res.status(400).json({ success: false, message: "Missing unique identification matching indices." });
@@ -84,6 +85,52 @@ app.put('/api/v1/grades/update', async (req, res) => {
         connection.release();
     }
 });
+// POST Route: Process quiz metrics, auto-calculate scores, and preserve data records
+app.post('/api/v1/exams/submit', async (req, res) => {
+    const { studentName, examId, userAnswers, correctAnswers } = req.body;
 
+    if (!studentName || !examId || !userAnswers || !correctAnswers) {
+        return res.status(400).json({ error: 'Missing mandatory payload validation fields.' });
+    }
+
+    // Mechanical marking logic loop calculation 
+    let score = 0;
+    const total = correctAnswers.length;
+
+    correctAnswers.forEach((correctVal, index) => {
+        if (userAnswers[index] === correctVal) {
+            score++;
+        }
+    });
+
+    const percentage = ((score / total) * 100).toFixed(2);
+
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+    try {
+        // Save complete quiz telemetry metrics cleanly to Alwaysdata DB cluster matrices
+        const [result] = await connection.execute(
+            'INSERT INTO exam_submissions (student_name, exam_id, score_obtained, total_questions, percentage) VALUES (?, ?, ?, ?, ?)',
+            [studentName, examId, score, total, percentage]
+        );
+
+        await connection.commit();
+        res.status(200).json({
+            message: 'Exam data matrix preserved safely.',
+            submissionId: result.insertId,
+            score: score,
+            total: total,
+            percentage: percentage
+        });
+    } catch (err) {
+        await connection.rollback();
+        console.error('Database write error occurred:', err.message);
+        res.status(500).json({ error: 'Internal system database logging failure.' });
+    } finally {
+        connection.release();
+    }
+});
+
+// Run Production Application Engine Listener Context
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Smart Server engine online. Operational Port Map: ${PORT}`));
