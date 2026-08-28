@@ -7,7 +7,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Fees & Payments');
-  const [activeChild, setActiveChild] = useState('Abbee');
+  const [activeChild, setActiveChild] = useState('');
   const [financials, setFinancials] = useState({ totalInvoice: , amountPaid: , balance:  });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -21,16 +21,10 @@ export default function App() {
       await new Promise(resolve => setTimeout(resolve, 600));
       if (studentId === '') {
         setFinancials({ totalInvoice: , amountPaid: , balance:  });
-        setTransactions([
-         // { date: ',', ref: '', amount: '', status: '', method: '' },
-          //{ date: ', ', ref: '', amount: '', status: '', method: '' },
-          //{ date: ', ', ref: '', amount: '', status: '', method: '' }
-        ]);
+        setTransactions([]);
       } else {
         setFinancials({ totalInvoice:, amountPaid: , balance: 0 });
-        setTransactions([
-         // { date: ',', ref: '', amount: '', status: '', method: 'telebirr' }
-        ]);
+        setTransactions([]);
       }
     } catch (err) {
       setErrorMessage('Pipeline dropped connection. Verify live deployment status hooks.');
@@ -62,10 +56,10 @@ export default function App() {
   };
 
   const handleDownloadPDF = () => {
-    alert(`Generating official statement transcript download file blueprint for ${activeChild} Abee...`);
+    alert(`Generating official statement transcript download file blueprint for ${activeChild} ...`);
     const link = document.createElement('a');
     link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(`HILLSIDE ACADEMY TUITION INVOICE STATEMENT\nChild Profile: ${activeChild} Abee\nTotal Invoice: ${financials.totalInvoice} ETB\nAmount Paid: ${financials.amountPaid} ETB\nRemaining Balance: ${financials.balance} ETB`);
-    link.download = `Hillside_Statement_${activeChild}.txt`;
+    link.download = `Schoolside_Statement_${activeChild}.txt`;
     link.click();
   };
 
