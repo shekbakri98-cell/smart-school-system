@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Alwaysdata MySQL Connection Pool Properties Configuration Matrix
+// Alwaysdata MySQL Connection Pool Configuration Matrix
 const dbConfig = {
     host: process.env.DB_HOST || 'mysql-anewar.alwaysdata.net', 
     user: process.env.DB_USER || 'anewar_admin',                
@@ -20,7 +20,7 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-// Health Check Route
+// Health Check Route for DevOps Monitoring
 app.get('/api/v1/health', async (req, res) => {
     try {
         await pool.execute('SELECT 1');
@@ -29,7 +29,6 @@ app.get('/api/v1/health', async (req, res) => {
         res.status(500).json({ status: "degraded", error: err.message });
     }
 });
-
 // GET Route: Fetch complete student roster along with active continuous assessment marks
 app.get('/api/v1/grades/roster', async (req, res) => {
     const { gradeLevel, courseId } = req.query;
@@ -83,7 +82,6 @@ app.put('/api/v1/grades/update', async (req, res) => {
         connection.release();
     }
 });
-
 // POST Route: Process quiz metrics, auto-calculate scores, and preserve data records
 app.post('/api/v1/exams/submit', async (req, res) => {
     const { studentName, examId, userAnswers, correctAnswers } = req.body;
@@ -112,7 +110,6 @@ app.post('/api/v1/exams/submit', async (req, res) => {
         connection.release();
     }
 });
-
 // POST Webhook Processing: Sync transactional parameters via incoming Telebirr payloads
 app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
     const { sign, data } = req.body;
@@ -143,7 +140,6 @@ app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
         connection.release();
     }
 });
-
 // POST Endpoint: Clean drop, rebuild tables, and batch-seed production mock matrices
 app.post('/api/v1/admin/seed-database', async (req, res) => {
     const connection = await pool.getConnection();
@@ -174,5 +170,6 @@ app.post('/api/v1/admin/seed-database', async (req, res) => {
     }
 });
 
+// Run Production Application Engine Listener Context
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(Smart Server engine online on Port: ${PORT}));
+app.listen(PORT, () => console.log(`Smart Server engine online on Port: ${PORT}`));
