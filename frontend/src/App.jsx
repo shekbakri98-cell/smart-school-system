@@ -45,7 +45,6 @@ export default function App() {
     };
 
     try {
-      // API backend irratti herrega haaraa galmeessuu
       await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,49 +112,46 @@ export default function App() {
           </div>
         </header>
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          
-                    {/* ADMIN ACTION WINDOW 2: IDENTITY RECORDS LOG VIEW */}
+          {/* ADMIN TAB 1: CREATE USER ACCOUNTS */}
+          {userRole === 'admin' && currentTab === 'Create User Accounts' && (
+            <div className="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                <UserPlus className="h-4 w-4 text-indigo-600" /> Account Creator Form
+              </h2>
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                <input type="text" required value={regName} onChange={e => setRegName(e.target.value)} placeholder="User Full Name" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50"/>
+                <input type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="Email Address" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50"/>
+                <input type="password" required value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="Password" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50"/>
+                <select value={regRole} onChange={e => setRegRole(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-white font-semibold">
+                  <option value="student">Student Portal</option>
+                  <option value="teacher">Teacher Portal</option>
+                  <option value="admin">System Administrator</option>
+                </select>
+                <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition">Provision New Account</button>
+              </form>
+            </div>
+          )}
+
+          {/* ADMIN TAB 2: IDENTITY RECORDS LOG VIEW */}
           {userRole === 'admin' && currentTab === 'Identity Records Log' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-fadeIn">
               <div className="p-5 bg-slate-950 text-white font-bold flex justify-between items-center">
-                <span className="flex items-center gap-2 text-sm">
-                  📋 Full Master Directory (System Admin Records Log)
-                </span>
-                <span className="text-[10px] font-mono bg-slate-800 px-3 py-1 rounded text-slate-400 border border-slate-700">
-                  Total Users Logged: {accounts.length}
-                </span>
+                <span className="text-sm">📋 Full Master Directory (System Admin Records Log)</span>
+                <span className="text-[10px] font-mono bg-slate-800 px-3 py-1 rounded text-slate-400 border border-slate-700">Total Users Logged: {accounts.length}</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                      <th className="p-4 pl-6">ID System Key</th>
-                      <th className="p-4">User Account Name</th>
-                      <th className="p-4">Email Address Database</th>
-                      <th className="p-4">System Assignment Role</th>
-                      <th className="p-4 text-center">Operational Status</th>
-                    </tr>
+                    <tr className="bg-slate-50 border-b text-slate-400 text-xs font-bold uppercase tracking-wider"><th className="p-4 pl-6">ID System Key</th><th className="p-4">User Account Name</th><th className="p-4">Email Address Database</th><th className="p-4">System Assignment Role</th><th className="p-4 text-center">Operational Status</th></tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-mono text-xs text-slate-600">
-                    {accounts.map((acc, index) => (
+                    {accounts.map((acc) => (
                       <tr key={acc.id} className="hover:bg-slate-50/50 transition">
                         <td className="p-4 pl-6 text-slate-400 font-bold">#US-00{acc.id}</td>
                         <td className="p-4 font-sans font-black text-slate-900 text-sm">{acc.name}</td>
                         <td className="p-4 text-xs font-medium text-slate-500">{acc.email}</td>
-                        <td className="p-4">
-                          <span className={`px-2.5 py-1 text-[10px] font-sans font-black rounded border uppercase ${
-                            acc.role === 'admin' ? 'bg-rose-50 text-rose-700 border-rose-200' :
-                            acc.role === 'teacher' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                            'bg-indigo-50 text-indigo-700 border-indigo-200'
-                          }`}>
-                            {acc.role}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className="px-2.5 py-1 text-[10px] font-sans font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            ● {acc.status}
-                          </span>
-                        </td>
+                        <td className="p-4"><span className="px-2.5 py-1 rounded border uppercase text-[10px] bg-indigo-50 text-indigo-700">{acc.role}</span></td>
+                        <td className="p-4 text-center"><span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px]">● {acc.status}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -164,46 +160,18 @@ export default function App() {
             </div>
           )}
 
-              {/* 2. RECENT ACCOUNTS IDENTITY AUDIT LOG */}
-              <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
-                <div className="p-4 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-emerald-400" /> Identity Access Audit Log
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-sm">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider"><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Assigned Role</th><th className="p-4 text-center">Status</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-mono text-xs text-slate-600">
-                      {accounts.map(acc => (
-                        <tr key={acc.id} className="hover:bg-slate-50/50">
-                          <td className="p-4 font-sans font-bold text-slate-900">{acc.name}</td>
-                          <td className="p-4 text-xs">{acc.email}</td>
-                          <td className="p-4"><span className="px-2 py-0.5 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold rounded uppercase text-[10px]">{acc.role}</span></td>
-                          <td className="p-4 text-center"><span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded text-[10px]">✓ {acc.status}</span></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* NON-ADMIN GENERIC WORKSPACE INTERFACES */}
           {userRole !== 'admin' && (
             <div className="bg-white p-8 rounded-2xl border text-center shadow-md">
               <h2 className="text-xl font-black text-slate-700">Identity Context Active: '{userRole.toUpperCase()}'</h2>
               <p className="text-sm text-slate-400 mt-2">Use the system top bar role options selector to navigate settings.</p>
             </div>
           )}
-
         </main>
       </div>
 
-      <footer className="bg-slate-900 text-slate-400 text-xs py-5 px-6 border-t border-slate-800 flex justify-between">
-        <div>Helpline: +251-11-XXXXXXX</div><div>Support: support@school.edu.et</div>
+      <footer className="bg-slate-900 text-slate-400 text-xs py-5 px-6 border-t border-slate-800 flex justify-between items-center w-full">
+        <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-600" /> Helpline: +251-11-XXXXXXX</div>
+        <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-600" /> Support: support@school.edu.et</div>
       </footer>
     </div>
   );
