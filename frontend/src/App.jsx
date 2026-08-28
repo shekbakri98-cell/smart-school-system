@@ -3,8 +3,7 @@ import {
   CreditCard, Landmark, Users, GraduationCap, CheckCircle2, 
   AlertTriangle, RefreshCw, LayoutDashboard, FileText, 
   Settings as SettingsIcon, Phone, Mail, Save, Edit3, 
-  UserCheck, ShieldAlert, Calendar, ClipboardCheck, UserPlus, 
-  Download, FileSpreadsheet
+  UserCheck, ShieldAlert, UserPlus, Shield, UserX
 } from 'lucide-react';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -12,104 +11,95 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   : 'https://smart-school-system-gdk5.onrender.com/api/v1';
 
 export default function App() {
-  const [userRole, setUserRole] = useState('teacher'); // 'parent' ykn 'teacher'
-  const [currentTab, setCurrentTab] = useState('Grade Entry Grid');
-  const [activeChild, setActiveChild] = useState('Tariku');
+  const [userRole, setUserRole] = useState('admin'); // 'admin', 'teacher', ykn 'student'
+  const [currentTab, setCurrentTab] = useState('Create User Accounts');
   const [fetching, setFetching] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Financial Variables
-  const [financials, setFinancials] = useState({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
-  const [transactions, setTransactions] = useState([
-    { date: 'Aug 25, 2026', ref: '9FL5XYZ7820', amount: '18,500.00', status: 'SUCCESS' },
-    { date: 'Jan 14, 2026', ref: '9BF2AAA1450', amount: '20,000.00', status: 'SUCCESS' }
+  // User Accounts Database Store Placeholder
+  const [accounts, setAccounts] = useState([
+    { id: 1, name: 'Ayane M.', email: 'parent@school.com', role: 'parent', status: 'ACTIVE' },
+    { id: 2, name: 'Alex Mercer', email: 'teacher@school.com', role: 'teacher', status: 'ACTIVE' },
+    { id: 3, name: 'Admin Control', email: 'admin@school.com', role: 'admin', status: 'ACTIVE' }
   ]);
 
-  // Student Profiles Matrix
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Tariku Abebe', grade: 'Grade 9B', ca1: 18, exam: 65, attendance: 'Present' },
-    { id: 2, name: 'Martha Abebe', grade: 'Grade 4A', ca1: 19, exam: 76, attendance: 'Present' }
-  ]);
-
-  const [editingId, setEditingId] = useState(null);
-  const [scores, setScores] = useState({ ca1: '', exam: '' });
-  const [newStudentName, setNewStudentName] = useState('');
-  const [newStudentGrade, setNewStudentGrade] = useState('');
-  const fetchDashboardData = async () => {
-    setFetching(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/students`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.length > 0) setStudents(data);
-      }
-    } catch (err) {
-      console.log("Safe state pipeline mapping.");
-    } finally {
-      setFetching(false);
+  // Form Fields Control
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regRole, setRegRole] = useState('student'); // Default role configuration
+  // 📝 ACCOUNT REGISTRATION HOOK: Save to MySQL DB
+  const handleCreateAccount = async (e) => {
+    e.preventDefault();
+    if (!regName || !regEmail || !regPassword) {
+      alert("Maaloo unkaalee hunda guutumaatti guuti!");
+      return;
     }
-  };
 
-  useEffect(() => { fetchDashboardData(); }, []);
-
-  const handleSaveScore = async (id) => {
-    const updatedStudent = students.find(s => s.id === id);
-    const finalCA = parseFloat(scores.ca1) || updatedStudent.ca1;
-    const finalExam = parseFloat(scores.exam) || updatedStudent.exam;
+    const newAccount = {
+      id: accounts.length + 1,
+      name: regName,
+      email: regEmail,
+      password: regPassword,
+      role: regRole,
+      status: 'ACTIVE'
+    };
 
     try {
-      await fetch(`${API_BASE_URL}/grades/update`, {
+      // API backend irratti herrega haaraa galmeessuu
+      await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: id, ca1: finalCA, exam: finalExam })
+        body: JSON.stringify(newAccount)
       });
-      setStudents(students.map(s => s.id === id ? { ...s, ca1: finalCA, exam: finalExam } : s));
-      setEditingId(null);
-      alert("🚀 Secure Hook: Saved to AlwaysData MySQL!");
+      
+      setAccounts([...accounts, newAccount]);
+      setRegName('');
+      setRegEmail('');
+      setRegPassword('');
+      alert(`🚀 Herregni haaraa bifa '${regRole.toUpperCase()}' kanaan AlwaysData MySQL irratti uumameera!`);
     } catch (err) {
-      setStudents(students.map(s => s.id === id ? { ...s, ca1: finalCA, exam: finalExam } : s));
-      setEditingId(null);
+      setAccounts([...accounts, newAccount]);
+      setRegName('');
+      setRegEmail('');
+      setRegPassword('');
+      alert("Database pipeline offline jira, garuu frontend irratti uumameera!");
     }
-  };
-
-  const toggleAttendance = (id) => {
-    setStudents(students.map(s => s.id === id ? { ...s, attendance: s.attendance === 'Present' ? 'Absent' : 'Present' } : s));
   };
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased flex flex-col justify-between">
       <div>
+        {/* PORTAL TOP NAVIGATION */}
         <header className="bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-900 text-white shadow-xl">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-3">
+          <div className="max-w-5xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2">
               <GraduationCap className="h-7 w-7 text-emerald-400" />
               <div>
                 <h1 className="font-black text-xl tracking-wider">HILLSIDE ACADEMY</h1>
-                <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mt-0.5">Latest Smart Education Portal</p>
+                <p className="text-[10px] text-slate-400 font-mono tracking-widest uppercase mt-0.5">Administrative Identity Access System</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => {
-                  const role = userRole === 'parent' ? 'teacher' : 'parent';
-                  setUserRole(role);
-                  setCurrentTab(role === 'parent' ? 'Dashboard' : 'Grade Entry Grid');
-                }} 
-                className="text-xs bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-4 py-2 rounded-xl font-bold shadow-md transition-all active:scale-95"
+            <div className="flex items-center gap-3">
+              <select 
+                value={userRole} 
+                onChange={(e) => {
+                  setUserRole(e.target.value);
+                  setCurrentTab(e.target.value === 'admin' ? 'Create User Accounts' : 'Dashboard');
+                }}
+                className="text-xs bg-indigo-950 text-white border border-indigo-700 px-3 py-1.5 rounded-xl font-bold font-mono outline-none"
               >
-                🔄 Switch to {userRole === 'parent' ? 'Teacher' : 'Parent'} Portal
-              </button>
-              <div className="text-sm font-semibold bg-indigo-950/80 px-4 py-2 rounded-xl border border-indigo-800 text-slate-300 text-xs font-mono">
-                {userRole === 'parent' ? 'Parent: Ayane M.' : 'Teacher: Alex M.'}
-              </div>
+                <option value="admin">System Admin View</option>
+                <option value="teacher">Teacher View</option>
+                <option value="student">Student View</option>
+              </select>
             </div>
           </div>
           
           <div className="bg-indigo-950/40 border-t border-indigo-900/50">
-            <div className="max-w-6xl mx-auto flex overflow-x-auto px-2">
-              {(userRole === 'parent' 
-                ? ['Dashboard', 'Academic Report', 'Fees & Payments']
-                : ['Grade Entry Grid', 'Attendance Tracker', 'Add New Student']
+            <div className="max-w-5xl mx-auto flex overflow-x-auto px-2">
+              {(userRole === 'admin' 
+                ? ['Create User Accounts', 'Identity Records Log']
+                : ['Dashboard', 'Settings']
               ).map(tabName => (
                 <button
                   key={tabName}
@@ -122,105 +112,79 @@ export default function App() {
             </div>
           </div>
         </header>
-        <main className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          {userRole === 'teacher' && currentTab === 'Add New Student' && (
-            <div className="max-w-md mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-xl">
-              <h2 className="text-lg font-black text-slate-900 mb-4">New Student Registration</h2>
-              <form onSubmit={fetchDashboardData} className="space-y-4">
-                <input type="text" placeholder="Full Name" required value={newStudentName} onChange={e => setNewStudentName(e.target.value)} className="w-full px-4 py-2.5 border rounded-xl text-sm outline-none bg-slate-50"/>
-                <input type="text" placeholder="Grade level" required value={newStudentGrade} onChange={e => setNewStudentGrade(e.target.value)} className="w-full px-4 py-2.5 border rounded-xl text-sm outline-none bg-slate-50"/>
-                <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest">Save Student</button>
-              </form>
-            </div>
-          )}
-
-          {userRole === 'teacher' && currentTab === 'Attendance Tracker' && (
-            <div className="bg-white rounded-2xl border overflow-hidden shadow-xl">
-              <div className="p-5 bg-slate-900 text-white font-bold text-sm">📅 Daily Attendance Ledger Roll</div>
-              <table className="w-full text-left border-collapse text-sm">
-                <tbody className="divide-y font-medium text-slate-700">
-                  {students.map(s => (
-                    <tr key={s.id}>
-                      <td className="p-4 font-bold text-slate-900">{s.name} ({s.grade})</td>
-                      <td className="p-4 text-center">
-                        <button onClick={() => toggleAttendance(s.id)} className={`px-4 py-1.5 rounded-xl text-xs font-black ${s.attendance === 'Present' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>{s.attendance === 'Present' ? '✓ PRESENT' : '✗ ABSENT'}</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {userRole === 'teacher' && currentTab === 'Grade Entry Grid' && (
-            <div className="bg-white rounded-2xl border overflow-hidden shadow-xl">
-              <div className="p-5 bg-slate-950 text-white font-bold text-sm">👨‍🏫 CA Evaluation Framework</div>
-              <table className="w-full text-left border-collapse text-sm">
-                <tbody className="divide-y font-mono text-xs">
-                  {students.map(s => (
-                    <tr key={s.id}>
-                      <td className="p-4 font-sans font-bold text-slate-900">{s.name}</td>
-                      <td className="p-4">{editingId === s.id ? <input type="number" className="w-16 border rounded p-1" value={scores.ca1} onChange={e=>setScores({...scores, ca1: e.target.value})} /> : s.ca1}</td>
-                      <td className="p-4">{editingId === s.id ? <input type="number" className="w-16 border rounded p-1" value={scores.exam} onChange={e=>setScores({...scores, exam: e.target.value})} /> : s.exam}</td>
-                      <td className="p-4 text-center">
-                        {editingId === s.id ? <button onClick={() => handleSaveScore(s.id)} className="bg-indigo-600 text-white px-3 py-1 rounded">Save</button> : <button onClick={() => { setEditingId(s.id); setScores({ ca1: s.ca1, exam: s.exam }); }} className="border px-3 py-1 rounded">Modify</button>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {userRole === 'parent' && (
-            <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl border flex justify-between items-center shadow-sm">
-                <div>
-                  <h2 className="text-xl font-black text-slate-900">Assalamuu Alaykum, Ayane M.</h2>
-                  <p className="text-xs text-slate-400 mt-1">Latest academic tracking state.</p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setActiveChild('Tariku')} className={`px-4 py-1.5 rounded-xl text-xs font-black tracking-wide border ${activeChild === 'Tariku' ? 'bg-indigo-900 text-white' : 'bg-white text-slate-600'}`}>Tariku Abebe</button>
-                  <button onClick={() => setActiveChild('Martha')} className={`px-4 py-1.5 rounded-xl text-xs font-black tracking-wide border ${activeChild === 'Martha' ? 'bg-indigo-900 text-white' : 'bg-white text-slate-600'}`}>Martha Abebe</button>
-                </div>
+        <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
+          
+          {/* ADMIN ACTION WINDOW: ACCOUNT REGISTRATION GRID */}
+          {userRole === 'admin' && currentTab === 'Create User Accounts' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              
+              {/* 1. NEW ACCOUNT CREATION FORM */}
+              <div className="md:col-span-1 bg-white p-6 rounded-2xl border border-slate-200 shadow-xl h-fit">
+                <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <UserPlus className="h-4 w-4 text-indigo-600" /> Account Creator
+                </h2>
+                <form onSubmit={handleCreateAccount} className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase">User Name</label>
+                    <input type="text" required value={regName} onChange={e => setRegName(e.target.value)} placeholder="e.g. Kedir Ahmed" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
+                    <input type="email" required value={regEmail} onChange={e => setRegEmail(e.target.value)} placeholder="name@school.edu.et" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Password</label>
+                    <input type="password" required value={regPassword} onChange={e => setRegPassword(e.target.value)} placeholder="••••••••" className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-slate-50 mt-1"/>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase">Assign Portal Role</label>
+                    <select value={regRole} onChange={e => setRegRole(e.target.value)} className="w-full px-3 py-2 border rounded-xl text-xs outline-none bg-white font-semibold mt-1">
+                      <option value="student">Student Portal</option>
+                      <option value="teacher">Teacher Portal</option>
+                      <option value="admin">System Administrator</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase tracking-widest transition shadow-md">
+                    Provision Account
+                  </button>
+                </form>
               </div>
 
-              {currentTab === 'Academic Report' && (
-                <div className="bg-white rounded-2xl border shadow-xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold text-sm uppercase text-slate-700">Academic Transcript Card</h3>
-                    <button 
-                      onClick={() => alert(`Report Card Blueprint Generated for ${activeChild} Abebe.`)}
-                      className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
-                    >
-                      <Download className="h-3.5 w-3.5" /> Export Report as PDF
-                    </button>
-                  </div>
-                  <table className="w-full text-left border-collapse text-sm font-mono text-xs">
-                    <tbody className="divide-y text-slate-700">
-                      {students.filter(s => s.name.includes(activeChild)).map((s, idx) => (
-                        <tr key={idx}>
-                          <td className="p-4 font-sans font-bold text-slate-900">General Core Framework</td>
-                          <td className="p-4">CA: {s.ca1} / 20</td><td className="p-4">Exam: {s.exam} / 80</td>
-                          <td className="p-4 font-sans font-black text-indigo-600">Total: {s.ca1 + s.exam} / 100</td>
+              {/* 2. RECENT ACCOUNTS IDENTITY AUDIT LOG */}
+              <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+                <div className="p-4 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-emerald-400" /> Identity Access Audit Log
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 text-xs font-bold uppercase tracking-wider"><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Assigned Role</th><th className="p-4 text-center">Status</th></tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-mono text-xs text-slate-600">
+                      {accounts.map(acc => (
+                        <tr key={acc.id} className="hover:bg-slate-50/50">
+                          <td className="p-4 font-sans font-bold text-slate-900">{acc.name}</td>
+                          <td className="p-4 text-xs">{acc.email}</td>
+                          <td className="p-4"><span className="px-2 py-0.5 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold rounded uppercase text-[10px]">{acc.role}</span></td>
+                          <td className="p-4 text-center"><span className="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded text-[10px]">✓ {acc.status}</span></td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-              )}
+              </div>
 
-              {currentTab === 'Fees & Payments' && (
-                <div className="bg-white rounded-2xl border p-6 shadow-sm">
-                  <h3 className="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">Invoice Standings</h3>
-                  <div className="grid grid-cols-3 gap-4 text-center font-mono text-xs">
-                    <div className="bg-slate-50 p-4 rounded-xl">Invoice: {financials.totalInvoice}</div>
-                    <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl font-bold">Paid: {financials.amountPaid}</div>
-                    <div className="bg-rose-50 text-rose-800 p-4 rounded-xl font-bold">Remaining: {financials.balance}</div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
+
+          {/* NON-ADMIN GENERIC WORKSPACE INTERFACES */}
+          {userRole !== 'admin' && (
+            <div className="bg-white p-8 rounded-2xl border text-center shadow-md">
+              <h2 className="text-xl font-black text-slate-700">Identity Context Active: '{userRole.toUpperCase()}'</h2>
+              <p className="text-sm text-slate-400 mt-2">Use the system top bar role options selector to navigate settings.</p>
+            </div>
+          )}
+
         </main>
       </div>
 
