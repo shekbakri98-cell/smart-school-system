@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   GraduationCap, Lock, Mail, User, Shield, 
   RefreshCw, LayoutDashboard, FileText, UserCheck, 
-  ShieldAlert, LogOut, Phone, Mail as MailIcon 
+  ShieldAlert, LogOut, Phone, Mail as MailIcon, KeyRound, ArrowLeft 
 } from 'lucide-react';
 
 const API_BASE_URL = window.location.hostname === 'localhost'
@@ -12,33 +12,58 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(''); // 'admin', 'teacher', ykn 'student'
+  const [userRole, setUserRole] = useState(''); 
   const [currentTab, setCurrentTab] = useState('Dashboard');
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Authentication Fields Input States
+  // Authentication & Forget Password Navigation State
+  const [authMode, setAuthMode] = useState('login'); // 'login' ykn 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // User Database Profiles Master Store
+  // Mock Accounts Database Store
   const [accounts, setAccounts] = useState([
     { id: 1, name: 'Admin Control', email: 'admin@school.com', password: 'password123', role: 'admin' },
     { id: 2, name: 'Alex Mercer', email: 'teacher@school.com', password: 'password123', role: 'teacher' },
     { id: 3, name: 'Tariku Abebe', email: 'student@school.com', password: 'password123', role: 'student' }
   ]);
-  // 🔐 LIVE LOG-IN PIPELINE INTEGRATION
+  // 🔄 AUTOMATED EFFECT HOOK: JWT Token Auto-Login Check
+  useEffect(() => {
+    const savedToken = localStorage.getItem('school_jwt_token');
+    const savedRole = localStorage.getItem('school_user_role');
+    const savedEmail = localStorage.getItem('school_user_email');
+
+    if (savedToken && savedRole && savedEmail) {
+      const matchedUser = accounts.find(acc => acc.email === savedEmail && acc.role === savedRole);
+      if (matchedUser) {
+        setCurrentUser(matchedUser);
+        setUserRole(savedRole);
+        setIsLoggedIn(true);
+        setCurrentTab(savedRole === 'admin' ? 'System Directory' : 'Dashboard');
+      }
+    }
+  }, []);
+
+  // 🔐 LIVE LOG-IN PIPELINE WITH JWT STORAGE
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginError('');
     setLoading(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 300)); // Simulation
+      await new Promise(resolve => setTimeout(resolve, 400)); // Pipeline Simulation
       const matchedUser = accounts.find(acc => acc.email === email && acc.password === password);
 
       if (matchedUser) {
+        // JWT TOKEN STORAGE IMPLEMENTATION (Save session browser keessatti)
+        localStorage.setItem('school_jwt_token', 'mock_jwt_token_hash_value_xyz');
+        localStorage.setItem('school_user_role', matchedUser.role);
+        localStorage.setItem('school_user_email', matchedUser.email);
+
         setCurrentUser(matchedUser);
         setUserRole(matchedUser.role);
         setIsLoggedIn(true);
@@ -55,13 +80,61 @@ export default function App() {
     }
   };
 
+  // 📧 FORGET PASSWORD HOOK
+  const handleForgotPasswordSubmit = (e) => {
+    e.preventDefault();
+    setSuccessMessage('');
+    
+    const userExists = accounts.some(acc => acc.email === forgotEmail);
+    if (userExists) {
+      setSuccessMessage(`✓ Link'ni iccitii haaromsuu gara i-meelii '${forgotEmail}' irratti sirriitti ergameera!`);
+      setForgotEmail('');
+    } else {
+      alert("❌ I-meeliin kun sirna keenya keessa hin jiru!");
+    }
+  };
+
   const handleLogout = () => {
+    // Session hunda browser keessaa haquu (Clear Storage)
+    localStorage.removeItem('school_jwt_token');
+    localStorage.removeItem('school_user_role');
+    localStorage.removeItem('school_user_email');
+    
     setIsLoggedIn(false);
     setUserRole('');
     setCurrentUser(null);
   };
-  // 🚪 IF NOT LOGGED IN: SHOW SECURE LOGIN INTERFACE FORM
+  // 🚪 IF NOT LOGGED IN: TOGGLE BETWEEN LOGIN & FORGOT PASSWORD INTERFACES
   if (!isLoggedIn) {
+    if (authMode === 'forgot') {
+      return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-white">
+          <div className="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-8 animate-fadeIn">
+            <div className="w-16 h-16 bg-amber-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/30 text-amber-500">
+              <KeyRound className="h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-black text-center tracking-wide">Iccitii Deebisi</h2>
+            <p className="text-slate-400 text-xs text-center mt-1 mb-6">I-meelii kee galchi linkii password haaromsuu argachuuf</p>
+
+            {successMessage && <div className="bg-emerald-500/20 border border-emerald-500/50 text-emerald-200 p-3 rounded-xl text-xs font-bold mb-4">{successMessage}</div>}
+
+            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+              <div className="relative">
+                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-500" />
+                <input type="email" required placeholder="I-meelii kee galchi..." value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl outline-none text-xs text-white focus:ring-1 focus:ring-indigo-500 font-mono"/>
+              </div>
+              <button type="submit" className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition text-xs uppercase tracking-widest shadow-md">
+                Linkii Ergi
+              </button>
+            </form>
+            <button onClick={() => { setAuthMode('login'); setSuccessMessage(''); }} className="mt-4 flex items-center justify-center gap-1 w-full text-center text-xs text-slate-400 hover:text-white transition font-semibold">
+              <ArrowLeft className="h-3.5 w-3.5" /> Gara Seensaatti Deebi'i
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-white">
         <div className="max-w-md w-full bg-slate-800 rounded-2xl shadow-2xl border border-slate-700 p-8">
@@ -86,7 +159,9 @@ export default function App() {
               {loading ? 'Authenticating Gateway...' : 'Secure Authorization'}
             </button>
           </form>
-          <div className="mt-4 text-center text-[10px] text-slate-500 font-mono">Mock logs: admin@school.com / password123</div>
+          <div className="mt-4 text-center">
+            <button onClick={() => { setAuthMode('forgot'); setLoginError(''); }} className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition hover:underline">Iccitii (Password) Irraanfatteettaa?</button>
+          </div>
         </div>
       </div>
     );
@@ -133,7 +208,6 @@ export default function App() {
         </header>
 
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          {/* TAB 1: SYSTEM DIRECTORY */}
           {currentTab === 'System Directory' && userRole === 'admin' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-fadeIn">
               <div className="p-5 bg-slate-950 text-white font-bold text-sm flex justify-between items-center">
@@ -141,29 +215,17 @@ export default function App() {
                 <span className="text-[10px] bg-slate-800 px-3 py-1 rounded text-slate-400 border border-slate-700">Total verified: {accounts.length}</span>
               </div>
               <div className="p-6 text-xs text-slate-500 leading-relaxed font-mono">
-                Admin core access configuration terminal activated successfully. All school drivers synced cleanly.
+                JWT Auto-login tokens matched successfully from localStorage pipe logs.
               </div>
             </div>
           )}
 
-          {/* 🚨 KUTAA HAARAA: TAB 2: OPERATIONAL MATRIX (KANA ASIRRATTI SIFA GALCHE) */}
           {currentTab === 'Operational Matrix' && userRole === 'admin' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4">📊 Cloud Server Infrastructure Status</h3>
                 <div className="space-y-4 font-mono text-xs text-slate-600">
                   <div className="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Database Engine:</span><span className="font-bold text-emerald-600">CONNECTED (AlwaysData)</span></div>
-                  <div className="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Active Sessions:</span><span className="font-bold text-indigo-600">3 Connections Live</span></div>
-                </div>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xl flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-2">🛠️ System Administration Tools</h3>
-                  <p className="text-xs text-slate-400 mb-4">Global variables control override parameters for master ledger routes.</p>
-                </div>
-                <div className="flex gap-3">
-                  <button onClick={() => alert("Cache cleared successfully.")} className="flex-1 bg-slate-800 text-white font-bold py-2 rounded-xl text-xs">Clear Cache</button>
-                  <button onClick={() => alert("Downloading logs...")} className="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs">Download Server Logs</button>
                 </div>
               </div>
             </div>
