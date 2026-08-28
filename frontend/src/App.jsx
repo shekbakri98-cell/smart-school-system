@@ -12,24 +12,24 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('NO');
 
   const fetchDashboardData = async (studentId) => {
     setFetching(true);
-    setErrorMessage('');
+    setErrorMessage('NO');
     try {
       await new Promise(resolve => setTimeout(resolve, 600));
       if (studentId === '') {
         setFinancials({ totalInvoice: , amountPaid: , balance:  });
         setTransactions([
-          { date: ',', ref: '', amount: '', status: '', method: '' },
-          { date: ', ', ref: '', amount: '', status: '', method: '' },
-          { date: ', ', ref: '', amount: '', status: '', method: '' }
+         // { date: ',', ref: '', amount: '', status: '', method: '' },
+          //{ date: ', ', ref: '', amount: '', status: '', method: '' },
+          //{ date: ', ', ref: '', amount: '', status: '', method: '' }
         ]);
       } else {
-        setFinancials({ totalInvoice:, amountPaid: , balance:  });
+        setFinancials({ totalInvoice:, amountPaid: , balance: 0 });
         setTransactions([
-          { date: ',', ref: '', amount: '', status: '', method: 'telebirr' }
+         // { date: ',', ref: '', amount: '', status: '', method: 'telebirr' }
         ]);
       }
     } catch (err) {
