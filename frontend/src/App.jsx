@@ -35,10 +35,7 @@ export default function App() {
     setLoading(true);
 
     try {
-      // API backend irratti dubbisuuf dhugaatti asirratti POST godha
-      await new Promise(resolve => setTimeout(resolve, 500)); // Pipeline Simulation
-
-      // Match user profile elements dynamically
+      await new Promise(resolve => setTimeout(resolve, 300)); // Simulation
       const matchedUser = accounts.find(acc => acc.email === email && acc.password === password);
 
       if (matchedUser) {
@@ -52,7 +49,7 @@ export default function App() {
         setLoginError('❌ Email ykn Password kee dogoggora! Maaloo deebisi yaali.');
       }
     } catch (err) {
-      setLoginError('Pipeline dropped authentication. Network verification failed.');
+      setLoginError('Pipeline dropped authentication.');
     } finally {
       setLoading(false);
     }
@@ -94,8 +91,6 @@ export default function App() {
       </div>
     );
   }
-
-  // MAIN SECURE WORKSPACE NAVBAR INTERFACE
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased flex flex-col justify-between">
       <div>
@@ -123,7 +118,7 @@ export default function App() {
             <div className="max-w-5xl mx-auto flex overflow-x-auto px-2">
               {(userRole === 'admin' 
                 ? ['System Directory', 'Operational Matrix']
-                : ['Dashboard', 'Performance Parameters']
+                : ['Dashboard']
               ).map(tabName => (
                 <button
                   key={tabName}
@@ -136,12 +131,13 @@ export default function App() {
             </div>
           </div>
         </header>
+
         <main className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
-          {/* VIEW CONTROLS DEPENDING ON AUTH ROLE */}
+          {/* TAB 1: SYSTEM DIRECTORY */}
           {currentTab === 'System Directory' && userRole === 'admin' && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-fadeIn">
               <div className="p-5 bg-slate-950 text-white font-bold text-sm flex justify-between items-center">
-                <span>📋 Admin Control Master Directory Directory</span>
+                <span>📋 Admin Control Master Directory</span>
                 <span className="text-[10px] bg-slate-800 px-3 py-1 rounded text-slate-400 border border-slate-700">Total verified: {accounts.length}</span>
               </div>
               <div className="p-6 text-xs text-slate-500 leading-relaxed font-mono">
@@ -150,8 +146,31 @@ export default function App() {
             </div>
           )}
 
+          {/* 🚨 KUTAA HAARAA: TAB 2: OPERATIONAL MATRIX (KANA ASIRRATTI SIFA GALCHE) */}
+          {currentTab === 'Operational Matrix' && userRole === 'admin' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xl">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-4">📊 Cloud Server Infrastructure Status</h3>
+                <div className="space-y-4 font-mono text-xs text-slate-600">
+                  <div className="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Database Engine:</span><span className="font-bold text-emerald-600">CONNECTED (AlwaysData)</span></div>
+                  <div className="flex justify-between p-2.5 bg-slate-50 rounded-xl"><span>Active Sessions:</span><span className="font-bold text-indigo-600">3 Connections Live</span></div>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xl flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-2">🛠️ System Administration Tools</h3>
+                  <p className="text-xs text-slate-400 mb-4">Global variables control override parameters for master ledger routes.</p>
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => alert("Cache cleared successfully.")} className="flex-1 bg-slate-800 text-white font-bold py-2 rounded-xl text-xs">Clear Cache</button>
+                  <button onClick={() => alert("Downloading logs...")} className="flex-1 bg-indigo-600 text-white font-bold py-2 rounded-xl text-xs">Download Server Logs</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {currentTab === 'Dashboard' && (
-            <div className="bg-white p-8 rounded-2xl border text-center shadow-md animate-fadeIn">
+            <div className="bg-white p-8 rounded-2xl text-center shadow-md animate-fadeIn">
               <h2 className="text-xl font-black text-slate-700">Assalamuu Alaykum, Welcome back!</h2>
               <p className="text-sm text-slate-400 mt-2">Workspace context set for role profiles: '{userRole.toUpperCase()}'.</p>
             </div>
