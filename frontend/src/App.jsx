@@ -12,7 +12,7 @@ export default function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('NO');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const fetchDashboardData = async (studentId) => {
     setFetching(true);
