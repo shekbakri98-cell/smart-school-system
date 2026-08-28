@@ -1,7 +1,6 @@
 {
   "name": "smart-school-backend",
   "version": "1.0.0",
-  "description": "Smart School System backend stack with native Telebirr payment webhooks",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,6 +9,9 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "mysql2": "^3.11.0"
+    "mysql2": "^3.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
