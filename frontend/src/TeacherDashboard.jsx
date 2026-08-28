@@ -3,7 +3,7 @@ import { Save, RefreshCw, CheckCircle, AlertCircle, Award, Send, Plus, Trash2 } 
 
 const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api/v1'
-  : 'https://onrender.com';
+  : 'https://smart-school-system-gdk5.onrender.com/api/v1';
 
 export default function TeacherDashboard() {
   const [selectedClass, setSelectedClass] = useState('8A');
