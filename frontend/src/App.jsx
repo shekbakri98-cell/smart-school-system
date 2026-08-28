@@ -7,7 +7,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Fees & Payments');
-  const [activeChild, setActiveChild] = useState('Tariku');
+  const [activeChild, setActiveChild] = useState('Abbee');
   const [financials, setFinancials] = useState({ totalInvoice: , amountPaid: , balance:  });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
