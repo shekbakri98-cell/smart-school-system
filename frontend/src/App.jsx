@@ -7,8 +7,8 @@ const API_BASE_URL = window.location.hostname === 'localhost'
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('Fees & Payments');
-  const [activeChild, setActiveChild] = useState('Abbichuu');
-  const [financials, setFinancials] = useState({ totalInvoice: , amountPaid: , balance:  });
+  const [activeChild, setActiveChild] = useState('Abee');
+  const [financials, setFinancials] = useState({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -19,7 +19,7 @@ export default function App() {
     setErrorMessage('');
     try {
       await new Promise(resolve => setTimeout(resolve, 600));
-      if (studentId === 'Abbichuu') {
+      if (studentId === 'Tariku') {
         setFinancials({ totalInvoice: 45000, amountPaid: 26500, balance: 18500 });
         setTransactions([
           { date: 'Aug 25, 2026', ref: '9FL5XYZ7820', amount: '18,500.00', status: 'SUCCESS', method: 'telebirr' },
@@ -76,7 +76,7 @@ export default function App() {
           <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-6 w-6 text-emerald-400" />
-              <h1 className="font-extrabold text-lg tracking-wider">🏢 BARNOOTA AKKAADAAMII PORTALAA</h1>
+              <h1 className="font-extrabold text-lg tracking-wider">🏢 Akaadamii Barnoota Portaalaa</h1>
             </div>
             <div className="text-sm font-medium bg-indigo-950 px-4 py-1.5 rounded-full border border-indigo-800 flex items-center gap-2">
               <Users className="h-4 w-4 text-slate-400" /> Parent View: Ayane M.
@@ -152,7 +152,7 @@ export default function App() {
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-lg shrink-0"><Landmark className="h-5 w-5" /></div>
                     <div>
                       <span className="block font-black text-slate-900 text-sm uppercase tracking-wide">🏦 Direct Bank Transfer</span>
-                      <span className="block text-xs font-mono bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded inline-block mt-1">CBE Account Reference: 1000396763827</span>
+                      <span className="block text-xs font-mono bg-slate-100 text-slate-700 font-bold px-2 py-1 rounded inline-block mt-1">CBE Account Reference: 1000123456789</span>
                       <span className="block text-xs text-slate-400 mt-2 leading-relaxed">*Requires manual cashier ledger account evaluation if bank tracker hash is unmatched.</span>
                     </div>
                   </div>
@@ -186,8 +186,8 @@ export default function App() {
 
       <footer className="bg-slate-800 text-slate-400 text-xs py-4 px-6 border-t border-slate-700">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-500" /> Support Helpline: <span className="text-slate-300 font-bold">+251922015661</span></div>
-          <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" /> Emergency Email Support: <span className="text-slate-300 font-bold">shekbakri98@gmail.com.et</span></div>
+          <div className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-500" /> Support Helpline: <span className="text-slate-300 font-bold">+251-11-XXXXXXX</span></div>
+          <div className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" /> Emergency Email Support: <span className="text-slate-300 font-bold">support@school.edu.et</span></div>
         </div>
       </footer>
     </div>
