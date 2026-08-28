@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const { exec } = require('child_process');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -110,6 +112,7 @@ app.post('/api/v1/exams/submit', async (req, res) => {
         connection.release();
     }
 });
+
 // POST Webhook Processing: Sync transactional parameters via incoming Telebirr payloads
 app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
     const { sign, data } = req.body;
@@ -140,6 +143,23 @@ app.post('/api/v1/payments/telebirr-webhook', async (req, res) => {
         connection.release();
     }
 });
+// GET Route: Generate and serve official student academic report transcript card
+app.get('/api/v1/reports/download/:studentName', async (req, res) => {
+    const { studentName } = req.params;
+    if (!studentName) return res.status(400).json({ success: false, message: "Missing parameter index." });
+
+    const pythonScriptPath = path.join(__dirname, 'generate_pdf.py');
+
+    exec(`python "${pythonScriptPath}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Python execution crash telemetry: ${error.message}`);
+            return res.status(500).json({ success: false, message: "PDF generation pipeline failure." });
+        }
+        const fallbackPdfPath = path.join(__dirname, 'generated', 'Hillside_Academy_Report_Card.pdf');
+        res.download(fallbackPdfPath, `Report_Card_${studentName}.pdf`);
+    });
+});
+
 // POST Endpoint: Clean drop, rebuild tables, and batch-seed production mock matrices
 app.post('/api/v1/admin/seed-database', async (req, res) => {
     const connection = await pool.getConnection();
@@ -170,6 +190,5 @@ app.post('/api/v1/admin/seed-database', async (req, res) => {
     }
 });
 
-// Run Production Application Engine Listener Context
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Smart Server engine online on Port: ${PORT}`));
+app.listen(PORT, () => console.log(`Smart Server engine online. Operational Port Map: ${PORT}`));
