@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # 🟢 SERVICE 1: EXPRESS API CONTAINER RUNTIME
+  backend-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hillside_backend_container
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - DB_HOST=mysql-anewar.alwaysdata.net
+      - DB_USER=anewar_admin
+      - DB_PASSWORD=015661Emran@
+      - DB_NAME=anewar_smart-school-system
+      - DB_PORT=3306
+    networks:
+      - hillside_portal_network
+    restart: always
+
+  # 🔵 SERVICE 2: NGING WEB DELIVERY SITE
+  frontend-portal:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hillside_frontend_container
+    ports:
+      - "8080:80"
+    networks:
+      - hillside_portal_network
+    depends_on:
+      - backend-service
+    restart: always
+
+# Shared isolated network channel map
+networks:
+  the_hillside_portal_network:
+    name: hillside_portal_network
+    driver: bridge
